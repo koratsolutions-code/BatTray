@@ -23,6 +23,22 @@ public class DeviceMonitorTests
     }
 
     [Fact]
+    public void Merge_KeepsKnownKind_WhenWinningReadingHasNone()
+    {
+        // Real case: RK100 over Bluetooth — the GATT provider knows it is a keyboard (Appearance),
+        // the Windows PnP provider does not, and its reading may be the most recent one.
+        var merged = DeviceMonitor.Merge(
+        [
+            new Device("bt:D104C6AECB01", "RK100RGB5.0", DeviceKind.Keyboard, 100, T0, "Bluetooth LE"),
+            new Device("bt:D104C6AECB01", "RK100RGB5.0", DeviceKind.Other, 100, T0.AddSeconds(1), "Windows Bluetooth"),
+        ]);
+
+        var device = Assert.Single(merged);
+        Assert.Equal(DeviceKind.Keyboard, device.Kind);
+        Assert.Equal("Windows Bluetooth", device.Source);
+    }
+
+    [Fact]
     public void Merge_SortsByName()
     {
         var merged = DeviceMonitor.Merge(

@@ -65,15 +65,24 @@ public sealed class DeviceMonitor : IDisposable
 
     /// <summary>
     /// Merges devices reported by several providers: when two share the same <see cref="Device.Id"/>,
-    /// the reading with a known percentage wins, then the most recent one. Result is sorted by name.
+    /// the reading with a known percentage wins, then the most recent one. A known
+    /// <see cref="DeviceKind"/> reported by any provider is kept even if the winning reading has none.
+    /// Result is sorted by name.
     /// </summary>
     public static IReadOnlyList<Device> Merge(IEnumerable<Device> devices) =>
         devices
             .GroupBy(d => d.Id, StringComparer.OrdinalIgnoreCase)
-            .Select(g => g
-                .OrderByDescending(d => d.BatteryPercent.HasValue)
-                .ThenByDescending(d => d.LastUpdated)
-                .First())
+            .Select(g =>
+            {
+                var winner = g
+                    .OrderByDescending(d => d.BatteryPercent.HasValue)
+                    .ThenByDescending(d => d.LastUpdated)
+                    .First();
+                var knownKind = g.Select(d => d.Kind).FirstOrDefault(k => k != DeviceKind.Other);
+                return winner.Kind == DeviceKind.Other && knownKind != DeviceKind.Other
+                    ? winner with { Kind = knownKind }
+                    : winner;
+            })
             .OrderBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 

@@ -42,6 +42,19 @@ To quit: right-click the widget → **Exit BatTray**. Logs are written to `%Loca
 |---|---|---|
 | Bluetooth LE | Modern mice, keyboards, headsets | GATT Battery Service (0x180F) |
 | Bluetooth (Windows) | Classic headsets and any device Windows reports | PnP property `DEVPKEY_Bluetooth_Battery`, the same value shown in Settings |
+| USB receiver (2.4 GHz) | Dongles with a known protocol (see below) | Pluggable HID protocols |
+
+### 2.4 GHz receivers
+Unlike Bluetooth, 2.4 GHz dongles have no common battery standard: every chip vendor uses its own
+protocol. BatTray therefore uses a catalogue of **pluggable protocols** (`IHidBatteryProtocol`):
+
+| Protocol | Devices |
+|---|---|
+| Standard HID battery (Battery Strength 0x06/0x20, Battery System 0x85) | Any receiver that follows the HID specification |
+| GetPower (Compx/Areson/Nordic) | Redragon (25A7:FA07/FA08), ATK, VXE, VGN, Dareu, Zaopin, Scyrox, G-Wolves… |
+
+Only read-only queries are sent, and only to receivers a protocol positively recognises. Unrecognised
+receivers are never written to; run `BatTray.exe --list-devices` to log their HID layout so support can be added.
 
 ## Status
-🚧 In development — phase 2: real Bluetooth battery readings.
+🚧 In development — phase 2: Bluetooth and 2.4 GHz receiver battery readings.

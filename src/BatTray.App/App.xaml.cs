@@ -86,7 +86,7 @@ public partial class App : Application
     private static IReadOnlyList<IBatteryProvider> CreateProviders(bool demo) =>
         demo
             ? [new FakeBatteryProvider(simulateDrain: true)]
-            : [new BleGattBatteryProvider(), new BluetoothPnpBatteryProvider()];
+            : [new BleGattBatteryProvider(), new BluetoothPnpBatteryProvider(), new HidDongleBatteryProvider()];
 
     private static async Task ListDevicesAsync(bool demo)
     {
@@ -101,6 +101,11 @@ public partial class App : Application
                     Log.Info($"[{provider.Name}] {devices.Count} device(s) with battery data.");
                     foreach (var d in devices)
                         Log.Info($"  {d.Name} | {d.Kind} | {d.BatteryPercent?.ToString() ?? "?"}% | {d.Id}");
+                    if (provider is IDiagnosticsSource diagnostics)
+                    {
+                        foreach (var line in diagnostics.DescribeDevices())
+                            Log.Info($"  · {line}");
+                    }
                 }
                 catch (Exception ex)
                 {
