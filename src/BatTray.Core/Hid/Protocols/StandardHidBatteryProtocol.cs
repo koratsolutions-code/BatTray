@@ -20,7 +20,10 @@ public sealed class StandardHidBatteryProtocol : IHidBatteryProtocol
 
     public bool CanHandle(HidReceiver receiver) => FindFields(receiver).Any();
 
-    public Task<HidBatteryReading?> ReadAsync(HidReceiver receiver, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<HidBatteryReading>> ReadAsync(HidReceiver receiver, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<HidBatteryReading>>(Read(receiver, cancellationToken) is { } reading ? [reading] : []);
+
+    private static HidBatteryReading? Read(HidReceiver receiver, CancellationToken cancellationToken)
     {
         foreach (var (collection, cap) in FindFields(receiver))
         {
@@ -42,10 +45,10 @@ public sealed class StandardHidBatteryProtocol : IHidBatteryProtocol
 
             var percent = Scale(raw, cap.LogicalMin, cap.LogicalMax);
             if (percent is not null)
-                return Task.FromResult<HidBatteryReading?>(new HidBatteryReading(percent));
+                return new HidBatteryReading(percent);
         }
 
-        return Task.FromResult<HidBatteryReading?>(null);
+        return null;
     }
 
     /// <summary>Converts a raw field value to a percentage using its logical range (0–100 when the range is unusable).</summary>

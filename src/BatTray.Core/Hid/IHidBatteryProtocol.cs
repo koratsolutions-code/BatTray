@@ -7,7 +7,16 @@ namespace BatTray.Core.Hid;
 /// <param name="Charging">True/false when the protocol reports it, null when unknown.</param>
 /// <param name="Name">Model name when the protocol knows it better than the USB strings.</param>
 /// <param name="Kind">Device type when the protocol knows it.</param>
-public sealed record HidBatteryReading(int? Percent, bool? Charging = null, string? Name = null, DeviceKind? Kind = null);
+/// <param name="SubId">
+/// Identifies one of several peripherals behind the same receiver (e.g. a Unifying slot);
+/// null when the receiver serves a single device.
+/// </param>
+public sealed record HidBatteryReading(
+    int? Percent,
+    bool? Charging = null,
+    string? Name = null,
+    DeviceKind? Kind = null,
+    string? SubId = null);
 
 /// <summary>
 /// A way to read the battery of a family of HID receivers. Implementations must only send
@@ -19,6 +28,9 @@ public interface IHidBatteryProtocol
 
     bool CanHandle(HidReceiver receiver);
 
-    /// <summary>Queries the battery. Returns null when the peripheral did not answer. Blocking I/O is allowed.</summary>
-    Task<HidBatteryReading?> ReadAsync(HidReceiver receiver, CancellationToken cancellationToken);
+    /// <summary>
+    /// Queries the battery of every peripheral served by the receiver. Returns an empty list when
+    /// nothing answered. Blocking I/O is allowed.
+    /// </summary>
+    Task<IReadOnlyList<HidBatteryReading>> ReadAsync(HidReceiver receiver, CancellationToken cancellationToken);
 }

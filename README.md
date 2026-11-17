@@ -50,6 +50,7 @@ protocol. BatTray therefore uses a catalogue of **pluggable protocols** (`IHidBa
 
 | Protocol | Devices |
 |---|---|
+| Logitech HID++ 2.0 (features 0x1004, 0x1000, 0x1001) | Unifying, Bolt and Lightspeed receivers (up to 6 devices each) and Logitech devices on USB |
 | Standard HID battery (Battery Strength 0x06/0x20, Battery System 0x85) | Any receiver that follows the HID specification |
 | GetPower (Compx/Areson/Nordic) | Redragon (25A7:FA07/FA08), ATK, VXE, VGN, Dareu, Zaopin, Scyrox, G-Wolves… |
 

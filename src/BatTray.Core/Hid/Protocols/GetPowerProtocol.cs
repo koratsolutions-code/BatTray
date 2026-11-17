@@ -87,16 +87,16 @@ public sealed class GetPowerProtocol : IHidBatteryProtocol
 
     public bool CanHandle(HidReceiver receiver) => FindModel(receiver) is { } model && FindRequestCollection(receiver, model) is not null;
 
-    public async Task<HidBatteryReading?> ReadAsync(HidReceiver receiver, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<HidBatteryReading>> ReadAsync(HidReceiver receiver, CancellationToken cancellationToken)
     {
         if (FindModel(receiver) is not { } model || FindRequestCollection(receiver, model) is not { } request)
-            return null;
+            return [];
 
         var reading = model.Transport == Transport.Areson
             ? await ReadAresonAsync(receiver, request, cancellationToken)
             : await ReadNordicAsync(request, cancellationToken);
 
-        return reading is null ? null : reading with { Name = model.Name, Kind = DeviceKind.Mouse };
+        return reading is null ? [] : [reading with { Name = model.Name, Kind = DeviceKind.Mouse }];
     }
 
     // ---- Frames (public for tests) ----

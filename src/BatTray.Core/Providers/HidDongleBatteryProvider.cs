@@ -34,6 +34,7 @@ public sealed class HidDongleBatteryProvider : IBatteryProvider, IDiagnosticsSou
 
     public static IReadOnlyList<IHidBatteryProtocol> DefaultProtocols() =>
     [
+        new LogitechHidppProtocol(),
         new StandardHidBatteryProtocol(),
         new GetPowerProtocol(),
     ];
@@ -62,32 +63,40 @@ public sealed class HidDongleBatteryProvider : IBatteryProvider, IDiagnosticsSou
                     continue;
                 }
 
-                HidBatteryReading? reading = null;
+                IReadOnlyList<HidBatteryReading> readings = [];
                 try
                 {
-                    reading = await Task.Run(() => protocol.ReadAsync(receiver, cancellationToken), cancellationToken);
+                    readings = await Task.Run(() => protocol.ReadAsync(receiver, cancellationToken), cancellationToken);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     CoreDiagnostics.Write($"[{Name}] {protocol.Name} failed on {receiver}: {ex.Message}");
                 }
 
-                if (reading?.Percent is { } percent)
+                var answered = new HashSet<string>();
+                foreach (var reading in readings)
                 {
+                    if (reading.Percent is not { } percent)
+                        continue;
+
+                    var id = reading.SubId is null ? receiver.Id : $"{receiver.Id}:{reading.SubId}";
                     var name = reading.Name ?? receiver.DisplayName;
                     var kind = reading.Kind ?? DeviceKindClassifier.Resolve(receiver.InferKind(), name);
-                    var device = new Device(receiver.Id, name, kind, percent, now, $"{Name} · {protocol.Name}");
-                    _lastGood[receiver.Id] = device;
+                    var device = new Device(id, name, kind, percent, now, $"{Name} · {protocol.Name}");
+                    _lastGood[id] = device;
+                    answered.Add(id);
                     result.Add(device);
                 }
-                else if (_lastGood.TryGetValue(receiver.Id, out var last) && now - last.LastUpdated < GracePeriod)
+
+                // Peripherals that did not answer may just be asleep: keep their last level for a while.
+                foreach (var (id, last) in _lastGood)
                 {
-                    result.Add(last); // asleep: keep showing the last known level for a while
+                    if (!answered.Contains(id) && BelongsTo(id, receiver) && now - last.LastUpdated < GracePeriod)
+                        result.Add(last);
                 }
             }
 
-            var present = receivers.Select(r => r.Id).ToHashSet();
-            foreach (var gone in _lastGood.Keys.Where(k => !present.Contains(k)).ToList())
+            foreach (var gone in _lastGood.Keys.Where(k => !receivers.Any(r => BelongsTo(k, r))).ToList())
                 _lastGood.TryRemove(gone, out _);
 
             return result;
@@ -126,6 +135,9 @@ public sealed class HidDongleBatteryProvider : IBatteryProvider, IDiagnosticsSou
             $"[{Name}] No battery protocol for {receiver} (mfr='{receiver.Manufacturer}', " +
             $"{receiver.Collections.Count} collections, {vendorChannels} vendor-defined). Nothing was sent to it.");
     }
+
+    private static bool BelongsTo(string deviceId, HidReceiver receiver) =>
+        deviceId == receiver.Id || deviceId.StartsWith(receiver.Id + ":", StringComparison.Ordinal);
 
     private static bool SafeCanHandle(IHidBatteryProtocol protocol, HidReceiver receiver)
     {

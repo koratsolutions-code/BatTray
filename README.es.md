@@ -50,6 +50,7 @@ de chips usa su propio protocolo. Por eso BatTray usa un catálogo de **protocol
 
 | Protocolo | Dispositivos |
 |---|---|
+| Logitech HID++ 2.0 (features 0x1004, 0x1000, 0x1001) | Receptores Unifying, Bolt y Lightspeed (hasta 6 dispositivos cada uno) y dispositivos Logitech por USB |
 | Batería HID estándar (Battery Strength 0x06/0x20, Battery System 0x85) | Cualquier receptor que siga la especificación HID |
 | GetPower (Compx/Areson/Nordic) | Redragon (25A7:FA07/FA08), ATK, VXE, VGN, Dareu, Zaopin, Scyrox, G-Wolves… |
 

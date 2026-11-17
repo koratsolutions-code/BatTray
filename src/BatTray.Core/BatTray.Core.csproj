@@ -4,4 +4,8 @@
     <RootNamespace>BatTray.Core</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="BatTray.Tests" />
+  </ItemGroup>
+
 </Project>
