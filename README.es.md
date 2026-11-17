@@ -35,7 +35,28 @@ dotnet run --project src/BatTray.App
 | `--mode overlay` | Ventana emergente encima de la barra (estrategia alternativa). |
 | `--demo` | Muestra dispositivos simulados en lugar de leer baterías reales. |
 
-Para cerrar: clic derecho sobre el widget → **Exit BatTray**. Los logs se guardan en `%LocalAppData%\KoratSolutions\BatTray\logs`.
+## Uso
+Haz clic derecho sobre el widget, o clic en el icono de BatTray en el área de notificación (Windows 11 deja
+los iconos nuevos en el menú `^`; arrástralo a la barra o actívalo en *Configuración › Personalización ›
+Barra de tareas › Otros iconos de la bandeja del sistema*). El menú permite:
+
+- **Elegir qué dispositivos se muestran** en la barra (marcar / desmarcar cada uno).
+- **Start with Windows**: iniciar con Windows (por usuario, sin permisos de administrador).
+- **Save diagnostics report…**: un archivo de texto con todos los dispositivos encontrados, incluidos los receptores de 2,4 GHz no soportados.
+- **Open log folder** y **Exit BatTray**.
+
+Si no caben todos los dispositivos en la barra, se ocultan primero los que tienen más batería.
+
+### Ajustes
+Se guardan en `%AppData%\KoratSolutions\BatTray\settings.json`:
+
+| Clave | Por defecto | Significado |
+|---|---|---|
+| `hiddenDeviceIds` | `[]` | Dispositivos que no se muestran en la barra (se gestiona desde el menú) |
+| `lowThreshold` | `30` | Por debajo de este %, el nivel se pone ámbar |
+| `criticalThreshold` | `15` | Por debajo de este %, el nivel se pone rojo |
+
+Los logs se guardan en `%LocalAppData%\KoratSolutions\BatTray\logs`.
 
 ## Fuentes de batería soportadas
 | Fuente | Dispositivos | Cómo |
@@ -58,4 +79,4 @@ Solo se envían consultas de lectura, y solo a receptores que un protocolo recon
 no reconocidos nunca se les escribe nada; ejecuta `BatTray.exe --list-devices` para registrar su estructura HID y poder añadirlos.
 
 ## Estado
-🚧 En desarrollo — fase 2: lectura de baterías Bluetooth y de receptores de 2,4 GHz.
+🚧 En desarrollo — fase 3: icono de bandeja, ajustes e inicio con Windows.

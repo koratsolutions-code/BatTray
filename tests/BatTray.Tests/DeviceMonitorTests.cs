@@ -39,6 +39,22 @@ public class DeviceMonitorTests
     }
 
     [Fact]
+    public void Merge_UsesKindFromMetadataOnlyEntry_AndDropsUnmeasuredDevices()
+    {
+        // Real case: RK100 asleep — GATT only knows it is a keyboard; Windows still reports 100 %.
+        var merged = DeviceMonitor.Merge(
+        [
+            new Device("bt:D104C6AECB01", "RK100RGB5.0", DeviceKind.Keyboard, null, T0, "Bluetooth LE"),
+            new Device("bt:D104C6AECB01", "RK100RGB5.0", DeviceKind.Other, 100, T0, "Windows Bluetooth"),
+            new Device("bt:111111111111", "Sleeping mouse", DeviceKind.Mouse, null, T0, "Bluetooth LE"),
+        ]);
+
+        var device = Assert.Single(merged);
+        Assert.Equal(DeviceKind.Keyboard, device.Kind);
+        Assert.Equal(100, device.BatteryPercent);
+    }
+
+    [Fact]
     public void Merge_SortsByName()
     {
         var merged = DeviceMonitor.Merge(

@@ -14,11 +14,13 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
     private DateTimeOffset _lastUpdated;
     private string _source = string.Empty;
     private bool _isShown = true;
+    private int _lowThreshold = BatteryLevelPalette.DefaultLowThreshold;
+    private int _criticalThreshold = BatteryLevelPalette.DefaultCriticalThreshold;
 
-    public DeviceViewModel(Device device)
+    public DeviceViewModel(Device device, int lowThreshold, int criticalThreshold)
     {
         Id = device.Id;
-        Update(device);
+        Update(device, lowThreshold, criticalThreshold);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -47,14 +49,21 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
 
     public string PercentText => _percent is { } p ? $"{p}%" : "—";
 
-    public BatteryLevel Level => BatteryLevelPalette.Classify(_percent);
+    public BatteryLevel Level => BatteryLevelPalette.Classify(_percent, _lowThreshold, _criticalThreshold);
 
     public string ToolTip =>
         $"{Name}: {PercentText}\nLast reading: {_lastUpdated.LocalDateTime:HH:mm:ss}" +
         (string.IsNullOrEmpty(_source) ? string.Empty : $" ({_source})");
 
-    public void Update(Device device)
+    public void Update(Device device, int lowThreshold, int criticalThreshold)
     {
+        if (lowThreshold != _lowThreshold || criticalThreshold != _criticalThreshold)
+        {
+            _lowThreshold = lowThreshold;
+            _criticalThreshold = criticalThreshold;
+            OnPropertyChanged(nameof(Level));
+        }
+
         Name = device.Name;
         Kind = device.Kind;
         Percent = device.BatteryPercent;

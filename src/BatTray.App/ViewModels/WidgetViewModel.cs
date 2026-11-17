@@ -34,7 +34,7 @@ public sealed class WidgetViewModel
     }
 
     /// <summary>Synchronises the collection with the given list. Returns true when items were added, removed or reordered.</summary>
-    public bool Apply(IReadOnlyList<Device> devices)
+    public bool Apply(IReadOnlyList<Device> devices, int lowThreshold, int criticalThreshold)
     {
         var structureChanged = false;
         var ids = devices.Select(d => d.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -54,12 +54,12 @@ public sealed class WidgetViewModel
             var existing = Devices.FirstOrDefault(d => string.Equals(d.Id, device.Id, StringComparison.OrdinalIgnoreCase));
             if (existing is null)
             {
-                Devices.Insert(i, new DeviceViewModel(device));
+                Devices.Insert(i, new DeviceViewModel(device, lowThreshold, criticalThreshold));
                 structureChanged = true;
                 continue;
             }
 
-            existing.Update(device);
+            existing.Update(device, lowThreshold, criticalThreshold);
             var index = Devices.IndexOf(existing);
             if (index != i)
             {

@@ -35,7 +35,28 @@ dotnet run --project src/BatTray.App
 | `--mode overlay` | Popup placed on top of the taskbar (fallback strategy). |
 | `--demo` | Show simulated devices instead of reading real batteries. |
 
-To quit: right-click the widget → **Exit BatTray**. Logs are written to `%LocalAppData%\KoratSolutions\BatTray\logs`.
+## Using BatTray
+Right-click the widget, or click the BatTray icon in the notification area (Windows 11 places new icons
+under the `^` overflow; drag it onto the taskbar, or enable it in *Settings › Personalization › Taskbar ›
+Other system tray icons*). The menu lets you:
+
+- **Choose which devices are shown** on the taskbar (tick / untick each one).
+- **Start with Windows** (per-user, no admin rights).
+- **Save diagnostics report…** — a text file listing every device found, including unsupported 2.4 GHz receivers.
+- **Open log folder** and **Exit BatTray**.
+
+When the taskbar has no room for every device, the ones with the most battery are hidden first.
+
+### Settings
+Stored in `%AppData%\KoratSolutions\BatTray\settings.json`:
+
+| Key | Default | Meaning |
+|---|---|---|
+| `hiddenDeviceIds` | `[]` | Devices not shown on the taskbar (managed from the menu) |
+| `lowThreshold` | `30` | Below this %, the level turns amber |
+| `criticalThreshold` | `15` | Below this %, the level turns red |
+
+Logs are written to `%LocalAppData%\KoratSolutions\BatTray\logs`.
 
 ## Supported battery sources
 | Source | Devices | How |
@@ -58,4 +79,4 @@ Only read-only queries are sent, and only to receivers a protocol positively rec
 receivers are never written to; run `BatTray.exe --list-devices` to log their HID layout so support can be added.
 
 ## Status
-🚧 In development — phase 2: Bluetooth and 2.4 GHz receiver battery readings.
+🚧 In development — phase 3: tray icon, settings and start with Windows.

@@ -16,12 +16,8 @@
         Nearly transparent background (alpha 1) instead of Transparent: in a per-pixel transparent window,
         pixels with alpha 0 do not receive mouse input, and we want tooltips and right-click on the whole widget.
     -->
+    <!-- The context menu is assigned in code (shared with the tray icon). -->
     <Grid Background="#01000000">
-        <Grid.ContextMenu>
-            <ContextMenu>
-                <MenuItem Header="Exit BatTray" Click="OnExitClick" />
-            </ContextMenu>
-        </Grid.ContextMenu>
 
         <ItemsControl ItemsSource="{Binding Devices}" VerticalAlignment="Center" Margin="2,0">
             <ItemsControl.ItemsPanel>

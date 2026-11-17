@@ -47,11 +47,21 @@ public sealed class BleGattBatteryProvider : IBatteryProvider
             {
                 seen.Add(info.Id);
                 var entry = await GetEntryAsync(info, cancellationToken);
-                if (entry is null || entry.Device.ConnectionStatus != BluetoothConnectionStatus.Connected)
+                if (entry is null)
                     continue;
+
+                if (entry.Device.ConnectionStatus != BluetoothConnectionStatus.Connected)
+                {
+                    // Asleep/disconnected: no reading, but its type (from the GAP Appearance) still helps the
+                    // monitor label a reading from another provider. Devices nobody measures are dropped.
+                    result.TryAdd(entry.DeviceId, new Device(entry.DeviceId, entry.Name, entry.Kind, null, _time.GetUtcNow(), Name));
+                    continue;
+                }
 
                 var percent = await entry.GetPercentAsync(cancellationToken);
                 // A device may expose several battery services: keep the first reading per device.
+                if (percent is not null)
+                    result.Remove(entry.DeviceId);
                 result.TryAdd(entry.DeviceId, new Device(entry.DeviceId, entry.Name, entry.Kind, percent, _time.GetUtcNow(), Name));
             }
 
