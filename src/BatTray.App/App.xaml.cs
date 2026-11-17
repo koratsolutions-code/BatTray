@@ -40,6 +40,7 @@ public partial class App : Application
     private DeviceMonitor? _monitor;
     private TrayIconHost? _tray;
     private ContextMenu? _widgetMenu;
+    private MenuPresenter? _menuPresenter;
     private DeviceMenuActions? _menuActions;
 
     protected override async void OnStartup(StartupEventArgs e)
@@ -78,13 +79,20 @@ public partial class App : Application
         _menuActions = new DeviceMenuActions(SetDeviceHidden, SetStartWithWindows, SaveDiagnostics,
             DiagnosticsReport.OpenLogFolder, () => Shutdown());
 
-        // Taskbar widget, with the shared menu on right-click.
+        _menuPresenter = new MenuPresenter();
+
+        // Taskbar widget: any click opens the shared menu.
         _widgetMenu = new ContextMenu();
-        var view = new TaskbarWidgetView { DataContext = _viewModel, ContextMenu = _widgetMenu };
+        var view = new TaskbarWidgetView { DataContext = _viewModel };
+        view.MouseLeftButtonUp += (_, args) => { args.Handled = true; ShowMenu(_widgetMenu); };
+        view.MouseRightButtonUp += (_, args) => { args.Handled = true; ShowMenu(_widgetMenu); };
         _host = new TaskbarWidgetHost(mode, view, _viewModel);
 
         // Tray icon: always reachable, even when the widget has no room on the taskbar.
         _tray = new TrayIconHost(new ContextMenu());
+        _tray.MenuRequested += () => ShowMenu(_tray.Menu);
+        MenuPresenter.Track(_widgetMenu);
+        MenuPresenter.Track(_tray.Menu);
         _tray.Show(_theme.IsLight);
 
         _watcher = new TaskbarWatcher();
@@ -131,17 +139,31 @@ public partial class App : Application
         var visible = _devices.Where(d => !_settings.IsHidden(d.Id)).ToList();
         _viewModel.Apply(visible, _settings.LowThreshold, _settings.CriticalThreshold);
 
-        if (_tray is not null && _menuActions is not null)
+        _tray?.SetDevices(_devices);
+
+        // Menus are rebuilt when they open; refresh closed ones so their size is right on the next open.
+        foreach (var menu in new[] { _tray?.Menu, _widgetMenu })
         {
-            var startWithWindows = AutoStart.IsEnabled();
-            _tray.SetDevices(_devices);
-            DeviceMenu.Fill(_tray.Menu, _devices, _settings, startWithWindows, _menuActions);
-            if (_widgetMenu is not null)
-                DeviceMenu.Fill(_widgetMenu, _devices, _settings, startWithWindows, _menuActions);
+            if (menu is { IsOpen: false })
+                FillMenu(menu);
         }
 
         // Text width may change (e.g. 100% → 99%): recompute the size once layout has run.
         Dispatcher.BeginInvoke(() => _host?.Reposition(), DispatcherPriority.Loaded);
+    }
+
+    private void ShowMenu(ContextMenu menu)
+    {
+        if (menu.IsOpen || _menuPresenter is null)
+            return;
+        FillMenu(menu);
+        _menuPresenter.Show(menu);
+    }
+
+    private void FillMenu(ContextMenu menu)
+    {
+        if (_menuActions is not null)
+            DeviceMenu.Fill(menu, _devices, _settings, AutoStart.IsEnabled(), _menuActions);
     }
 
     private void SetDeviceHidden(string deviceId, bool hidden)
@@ -238,6 +260,7 @@ public partial class App : Application
         _watcher?.Dispose();
         _host?.Dispose();
         _tray?.Dispose();
+        _menuPresenter?.Dispose();
         _theme?.Dispose();
         if (_singleInstance is not null)
         {

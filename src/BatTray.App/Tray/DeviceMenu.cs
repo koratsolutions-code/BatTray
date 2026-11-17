@@ -18,6 +18,7 @@ internal sealed record DeviceMenuActions(
 /// <summary>Builds the shared BatTray context menu.</summary>
 internal static class DeviceMenu
 {
+
     public static void Fill(
         ContextMenu menu,
         IReadOnlyList<Device> devices,
@@ -39,13 +40,23 @@ internal static class DeviceMenu
             foreach (var device in devices)
             {
                 var id = device.Id;
+                // The check box uses the icon column, so the device icon goes inside the header.
+                var header = new StackPanel { Orientation = Orientation.Horizontal };
+                if (CreateIcon(device.Kind) is { } icon)
+                    header.Children.Add(icon);
+                header.Children.Add(new TextBlock
+                {
+                    Text = $"{device.Name}  —  {(device.BatteryPercent is { } p ? $"{p}%" : "?")}",
+                    Margin = new Thickness(8, 0, 0, 0),
+                    VerticalAlignment = VerticalAlignment.Center,
+                });
+
                 var item = new MenuItem
                 {
-                    Header = $"{device.Name}  —  {(device.BatteryPercent is { } p ? $"{p}%" : "?")}",
+                    Header = header,
                     ToolTip = $"Show on the taskbar\n{device.Source}",
                     IsCheckable = true,
                     IsChecked = !settings.IsHidden(id),
-                    Icon = CreateIcon(device.Kind),
                     StaysOpenOnClick = true,
                 };
                 item.Click += (_, _) => actions.SetDeviceHidden(id, !item.IsChecked);

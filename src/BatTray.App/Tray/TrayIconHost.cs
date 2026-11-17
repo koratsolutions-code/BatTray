@@ -21,16 +21,21 @@ internal sealed class TrayIconHost : IDisposable
     public TrayIconHost(ContextMenu menu)
     {
         Menu = menu;
+        // The menu is not handed to H.NotifyIcon: MenuPresenter opens it so it does not close immediately.
         _icon = new TaskbarIcon
         {
             ToolTipText = "BatTray",
-            ContextMenu = menu,
-            MenuActivation = PopupActivationMode.LeftOrRightClick,
+            MenuActivation = PopupActivationMode.None,
             NoLeftClickDelay = true,
         };
+        _icon.TrayLeftMouseUp += (_, _) => MenuRequested?.Invoke();
+        _icon.TrayRightMouseUp += (_, _) => MenuRequested?.Invoke();
     }
 
     public ContextMenu Menu { get; }
+
+    /// <summary>The user clicked the icon (left or right button).</summary>
+    public event Action? MenuRequested;
 
     public void Show(bool lightTaskbar)
     {
