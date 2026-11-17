@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows10.0.22621.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <Company>Korat Solutions</Company>
+    <Authors>Korat Solutions</Authors>
+    <Product>BatTray</Product>
+    <Copyright>Copyright © Korat Solutions 2026</Copyright>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+</Project>
