@@ -2,8 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        Iconos de dispositivo dibujados en una cuadrícula de 16x16 DIP, pensados para trazo (Stroke)
-        de ~1.4 px con extremos redondeados. Se usan con Stretch="None" para que todos midan igual.
+        Device icons drawn on a 16x16 DIP grid, designed for a ~1.4 px stroke with round caps.
+        Used with Stretch="None" so every icon has the same size.
     -->
 
     <Geometry x:Key="Icon.Mouse">
@@ -30,7 +30,7 @@
         M10.5,7.75 L10.55,7.75 M12,6.5 L12.05,6.5
     </Geometry>
 
-    <!-- Genérico: símbolo Bluetooth. -->
+    <!-- Generic: Bluetooth symbol. -->
     <Geometry x:Key="Icon.Other">
         M4.5,5 L11.5,11 L8,14 L8,2 L11.5,5 L4.5,11
     </Geometry>

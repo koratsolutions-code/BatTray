@@ -3,12 +3,12 @@ using BatTray.Core.Models;
 
 namespace BatTray.App.ViewModels;
 
-/// <summary>Lista de dispositivos que muestra el widget. Usar solo desde el hilo de UI.</summary>
+/// <summary>Devices shown by the widget. Use from the UI thread only.</summary>
 public sealed class WidgetViewModel
 {
     public ObservableCollection<DeviceViewModel> Devices { get; } = [];
 
-    /// <summary>Vuelve a mostrar todos los dispositivos.</summary>
+    /// <summary>Shows every device again.</summary>
     public void ShowAll()
     {
         foreach (var device in Devices)
@@ -16,8 +16,8 @@ public sealed class WidgetViewModel
     }
 
     /// <summary>
-    /// Oculta el dispositivo visible con más batería (el menos urgente). Los de batería desconocida se ocultan primero.
-    /// Devuelve false si ya no queda ninguno visible.
+    /// Hides the visible device with the most battery (the least urgent one). Devices with unknown
+    /// battery are hidden first. Returns false when none is left visible.
     /// </summary>
     public bool HideLeastUrgent()
     {
@@ -33,7 +33,7 @@ public sealed class WidgetViewModel
         return Devices.Any(d => d.IsShown);
     }
 
-    /// <summary>Sincroniza la colección con la lista recibida. Devuelve true si cambió el número u orden de elementos.</summary>
+    /// <summary>Synchronises the collection with the given list. Returns true when items were added, removed or reordered.</summary>
     public bool Apply(IReadOnlyList<Device> devices)
     {
         var structureChanged = false;

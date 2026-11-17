@@ -424,7 +424,7 @@ test-results/
 
 # Mac bundle stuff
 *.dmg
-# *.app  (desactivado: en Windows coincide con la carpeta src/BatTray.App)
+# *.app  (disabled: on Windows it also matches the src/BatTray.App folder)
 
 # content below from: https://github.com/github/gitignore/blob/main/Global/macOS.gitignore
 # General

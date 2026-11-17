@@ -7,21 +7,21 @@ using static BatTray.App.Interop.NativeMethods;
 namespace BatTray.App.Taskbar;
 
 /// <summary>
-/// Aloja la vista WPF del widget en una ventana Win32 (HwndSource) colocada sobre la barra de tareas,
-/// justo a la izquierda de la zona de notificación.
+/// Hosts the WPF widget view in a Win32 window (HwndSource) placed on the taskbar,
+/// right next to the left edge of the notification area.
 /// </summary>
 internal sealed class TaskbarWidgetHost : IDisposable
 {
-    /// <summary>Separación entre el widget y la zona de notificación (DIP).</summary>
+    /// <summary>Gap between the widget and its neighbours (DIP).</summary>
     private const double GapDip = 4;
 
     private readonly AnchorMode _mode;
     private readonly FrameworkElement _view;
+    private readonly WidgetViewModel _viewModel;
     private HwndSource? _source;
     private IntPtr _attachedTo;
     private TaskbarInfo? _info;
     private bool _fullscreen;
-    private readonly WidgetViewModel _viewModel;
     private int? _taskButtonsRight;
     private int? _lastShownCount;
 
@@ -34,7 +34,7 @@ internal sealed class TaskbarWidgetHost : IDisposable
 
     public AnchorMode Mode => _mode;
 
-    /// <summary>Aplica una nueva geometría de la barra (se llama desde <see cref="TaskbarWatcher.Changed"/>).</summary>
+    /// <summary>Applies a new taskbar geometry (called from <see cref="TaskbarWatcher.Changed"/>).</summary>
     public void Update(TaskbarInfo info, bool fullscreen)
     {
         _info = info;
@@ -46,7 +46,7 @@ internal sealed class TaskbarWidgetHost : IDisposable
         Reposition();
     }
 
-    /// <summary>Recalcula tamaño y posición (p. ej. cuando cambia el contenido del widget).</summary>
+    /// <summary>Recomputes size and position (e.g. when the widget content changes).</summary>
     public void Reposition()
     {
         if (_source is null || _info is null)
@@ -55,11 +55,10 @@ internal sealed class TaskbarWidgetHost : IDisposable
         var info = _info;
         var scale = info.Scale;
         var heightPx = info.Taskbar.Height;
-
         var gapPx = (int)Math.Round(GapDip * scale);
         var rightPx = info.NotifyArea.Left - gapPx;
 
-        // Nunca tapar los botones de apps: si no caben todos, se ocultan los dispositivos con más batería.
+        // Never cover the app buttons: when not every device fits, hide the ones with the most battery.
         var buttonsRight = _taskButtonsRight ?? (info.TaskButtons.IsEmpty ? (int?)null : info.TaskButtons.Right);
         var availablePx = buttonsRight is null ? int.MaxValue : rightPx - (buttonsRight.Value + gapPx);
 
@@ -77,17 +76,16 @@ internal sealed class TaskbarWidgetHost : IDisposable
         if (state != _lastShownCount)
         {
             Log.Info(fits
-                ? $"Widget: {shown}/{_viewModel.Devices.Count} dispositivos visibles, {widthPx}px (disponible: {(buttonsRight is null ? "sin límite" : availablePx + "px")})."
-                : $"Widget oculto: no hay espacio (disponible {availablePx}px).");
+                ? $"Widget: {shown}/{_viewModel.Devices.Count} devices shown, {widthPx}px (available: {(buttonsRight is null ? "unbounded" : availablePx + "px")})."
+                : $"Widget hidden: not enough room (available {availablePx}px).");
             _lastShownCount = state;
         }
 
         var leftPx = rightPx - widthPx;
-
         var hwnd = _source.Handle;
         if (_mode == AnchorMode.Child)
         {
-            // Coordenadas relativas al área cliente de Shell_TrayWnd.
+            // Coordinates relative to the Shell_TrayWnd client area.
             SetWindowPos(hwnd, HWND_TOP, leftPx - info.Taskbar.Left, 0, widthPx, heightPx,
                 SWP_NOACTIVATE | (fits ? SWP_SHOWWINDOW : SWP_HIDEWINDOW));
         }
@@ -104,20 +102,20 @@ internal sealed class TaskbarWidgetHost : IDisposable
 
     private int MeasureWidthPx(int heightPx, double scale)
     {
-        // Aplica antes los cambios de visibilidad pendientes; si no, Measure devuelve el tamaño anterior.
+        // Apply pending visibility changes first; otherwise Measure returns the previous size.
         _view.UpdateLayout();
         _view.Measure(new Size(double.PositiveInfinity, heightPx / scale));
         return Math.Max(1, (int)Math.Ceiling(_view.DesiredSize.Width * scale));
     }
 
-    /// <summary>Borde derecho real de los botones de apps (medido con UI Automation), o null si se desconoce.</summary>
+    /// <summary>Real right edge of the app buttons (measured with UI Automation), or null when unknown.</summary>
     public void SetTaskButtonsRight(int? right)
     {
         _taskButtonsRight = right;
         Reposition();
     }
 
-    /// <summary>En modo Overlay, vuelve a poner el widget encima de la barra.</summary>
+    /// <summary>In Overlay mode, puts the widget back on top of the taskbar.</summary>
     public void BringToFront()
     {
         if (_mode == AnchorMode.Overlay && _source is not null)
@@ -130,7 +128,7 @@ internal sealed class TaskbarWidgetHost : IDisposable
 
         var parameters = new HwndSourceParameters("BatTray.TaskbarWidget")
         {
-            // Child: hija de la barra. Overlay: emergente cuyo propietario es la barra (queda siempre por encima de ella).
+            // Child: child of the taskbar. Overlay: popup owned by the taskbar (always stays above it).
             ParentWindow = info.TaskbarHwnd,
             WindowStyle = _mode == AnchorMode.Child
                 ? WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS
@@ -153,11 +151,11 @@ internal sealed class TaskbarWidgetHost : IDisposable
                 SizeToContent = SizeToContent.Manual,
             };
             _attachedTo = info.TaskbarHwnd;
-            Log.Info($"Widget creado en modo {_mode}: hwnd=0x{_source.Handle:X}");
+            Log.Info($"Widget created in {_mode} mode: hwnd=0x{_source.Handle:X}");
         }
         catch (Exception ex)
         {
-            Log.Error($"No se pudo crear el widget en modo {_mode}.", ex);
+            Log.Error($"Could not create the widget in {_mode} mode.", ex);
             _source = null;
             _attachedTo = IntPtr.Zero;
         }
@@ -175,8 +173,8 @@ internal sealed class TaskbarWidgetHost : IDisposable
         }
         catch (Exception ex)
         {
-            // Si Explorer murió, la ventana hija ya fue destruida junto con su padre.
-            Log.Info($"Liberando widget anterior: {ex.Message}");
+            // If Explorer died, the child window was already destroyed together with its parent.
+            Log.Info($"Releasing previous widget: {ex.Message}");
         }
 
         _source = null;

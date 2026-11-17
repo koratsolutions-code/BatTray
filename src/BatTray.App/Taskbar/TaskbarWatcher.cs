@@ -6,9 +6,8 @@ using static BatTray.App.Interop.NativeMethods;
 namespace BatTray.App.Taskbar;
 
 /// <summary>
-/// Vigila la barra de tareas: cambios de posición/tamaño (WinEvent), reinicio de Explorer
-/// (mensaje TaskbarCreated), cambios de primer plano y un sondeo de respaldo cada segundo.
-/// Debe crearse y usarse en el hilo de UI.
+/// Watches the taskbar: position/size changes (WinEvent), Explorer restarts (TaskbarCreated message),
+/// foreground changes and a once-per-second fallback poll. Must be created and used on the UI thread.
 /// </summary>
 internal sealed class TaskbarWatcher : IDisposable
 {
@@ -30,7 +29,7 @@ internal sealed class TaskbarWatcher : IDisposable
 
     public TaskbarWatcher()
     {
-        // Los delegados se guardan en campos para que el GC no los recoja mientras el hook está activo.
+        // Delegates are kept in fields so the GC does not collect them while the hooks are active.
         _locationProc = OnLocationChange;
         _foregroundProc = OnForegroundChange;
         _debounce = new DispatcherTimer(DispatcherPriority.Background) { Interval = DebounceDelay };
@@ -39,15 +38,15 @@ internal sealed class TaskbarWatcher : IDisposable
         _poll.Tick += (_, _) => Check(force: false);
     }
 
-    /// <summary>Cambió la geometría de la barra o el estado de pantalla completa.</summary>
+    /// <summary>The taskbar geometry or the full-screen state changed.</summary>
     public event Action<TaskbarInfo, bool>? Changed;
 
-    /// <summary>Otra ventana pasó a primer plano (útil para reafirmar el modo Overlay).</summary>
+    /// <summary>Another window came to the foreground (used to re-assert Overlay mode).</summary>
     public event Action? ForegroundChanged;
 
     public void Start()
     {
-        // Ventana oculta de nivel superior: recibe el broadcast "TaskbarCreated" cuando Explorer se reinicia.
+        // Hidden top-level window: receives the "TaskbarCreated" broadcast when Explorer restarts.
         _messageWindow = new HwndSource(new HwndSourceParameters("BatTray.Messages")
         {
             Width = 0,
@@ -63,7 +62,7 @@ internal sealed class TaskbarWatcher : IDisposable
         Check(force: true);
     }
 
-    /// <summary>Fuerza una notificación con el estado actual.</summary>
+    /// <summary>Forces a notification with the current state.</summary>
     public void Refresh() => Check(force: true);
 
     private void Check(bool force)
@@ -72,7 +71,7 @@ internal sealed class TaskbarWatcher : IDisposable
         if (info is null)
         {
             if (_last is not null)
-                Log.Info("Barra de tareas no encontrada (¿Explorer reiniciándose?).");
+                Log.Info("Taskbar not found (is Explorer restarting?).");
             _last = null;
             return;
         }
@@ -85,8 +84,8 @@ internal sealed class TaskbarWatcher : IDisposable
 
         if (_last is null || info.TaskbarHwnd != _last.TaskbarHwnd)
         {
-            Log.Info($"Barra localizada: hwnd=0x{info.TaskbarHwnd:X} rect={info.Taskbar} notify={info.NotifyArea}" +
-                     $"{(info.NotifyAreaEstimated ? " (estimada)" : string.Empty)} botones={info.TaskButtons}" +
+            Log.Info($"Taskbar located: hwnd=0x{info.TaskbarHwnd:X} rect={info.Taskbar} notify={info.NotifyArea}" +
+                     $"{(info.NotifyAreaEstimated ? " (estimated)" : string.Empty)} buttons={info.TaskButtons}" +
                      $" dpi={info.Dpi} autohide={info.AutoHide}");
         }
 
@@ -114,7 +113,7 @@ internal sealed class TaskbarWatcher : IDisposable
         if (idObject != OBJID_WINDOW || _last is null)
             return;
 
-        // Explorer mueve muchas ventanas (también las del Explorador de archivos): filtramos las de la barra.
+        // Explorer moves many windows (File Explorer ones too): only react to the taskbar's.
         if (hwnd == _last.TaskbarHwnd || IsTaskbarPart(hwnd))
             ScheduleCheck();
     }
@@ -122,7 +121,7 @@ internal sealed class TaskbarWatcher : IDisposable
     private void OnForegroundChange(IntPtr hook, uint evt, IntPtr hwnd, int idObject, int idChild, uint thread, uint time)
     {
         ForegroundChanged?.Invoke();
-        ScheduleCheck(); // el estado de pantalla completa puede haber cambiado
+        ScheduleCheck(); // the full-screen state may have changed
     }
 
     private bool IsTaskbarPart(IntPtr hwnd)
@@ -142,7 +141,7 @@ internal sealed class TaskbarWatcher : IDisposable
     {
         if (_taskbarCreatedMsg != 0 && (uint)msg == _taskbarCreatedMsg)
         {
-            Log.Info("TaskbarCreated recibido: Explorer se reinició.");
+            Log.Info("TaskbarCreated received: Explorer restarted.");
             _last = null;
             Check(force: true);
         }

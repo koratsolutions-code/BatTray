@@ -2,7 +2,7 @@ using BatTray.App.Interop;
 
 namespace BatTray.App.Taskbar;
 
-/// <summary>Instantánea de la geometría de la barra de tareas principal (píxeles físicos de pantalla).</summary>
+/// <summary>Snapshot of the primary taskbar geometry (physical screen pixels).</summary>
 internal sealed record TaskbarInfo(
     IntPtr TaskbarHwnd,
     RECT Taskbar,
@@ -15,7 +15,7 @@ internal sealed record TaskbarInfo(
 {
     public double Scale => Dpi / 96.0;
 
-    /// <summary>Altura de la barra que está realmente dentro del monitor (≈0 si el autoocultar la escondió).</summary>
+    /// <summary>Height of the taskbar actually inside the monitor (≈0 when auto-hide has hidden it).</summary>
     public int VisibleHeight =>
         Math.Max(0, Math.Min(Taskbar.Bottom, Monitor.Bottom) - Math.Max(Taskbar.Top, Monitor.Top));
 }

@@ -2,7 +2,7 @@ using System.IO;
 
 namespace BatTray.App.Diagnostics;
 
-/// <summary>Log mínimo a archivo en %LocalAppData%\KoratSolutions\BatTray\logs.</summary>
+/// <summary>Minimal file logger writing to %LocalAppData%\KoratSolutions\BatTray\logs.</summary>
 internal static class Log
 {
     private static readonly object Gate = new();
@@ -30,7 +30,7 @@ internal static class Log
         }
         catch
         {
-            // El log nunca debe tumbar la app.
+            // Logging must never bring the app down.
         }
     }
 }

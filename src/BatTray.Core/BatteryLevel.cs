@@ -8,7 +8,7 @@ public enum BatteryLevel
     Critical,
 }
 
-/// <summary>Clasifica un porcentaje en un nivel (verde / amarillo / rojo en la UI).</summary>
+/// <summary>Classifies a percentage into a level (shown green / amber / red by the UI).</summary>
 public static class BatteryLevelPalette
 {
     public const int DefaultLowThreshold = 30;

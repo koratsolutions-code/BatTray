@@ -13,9 +13,9 @@ public class DeviceMonitorTests
     {
         var merged = DeviceMonitor.Merge(
         [
-            new Device("AA:BB", "Mouse", DeviceKind.Mouse, null, T0.AddMinutes(5)),
-            new Device("aa:bb", "Mouse", DeviceKind.Mouse, 40, T0),
-            new Device("AA:BB", "Mouse", DeviceKind.Mouse, 38, T0.AddMinutes(1)),
+            new Device("bt:AABBCCDDEEFF", "Mouse", DeviceKind.Mouse, null, T0.AddMinutes(5)),
+            new Device("BT:aabbccddeeff", "Mouse", DeviceKind.Mouse, 40, T0),
+            new Device("bt:AABBCCDDEEFF", "Mouse", DeviceKind.Mouse, 38, T0.AddMinutes(1)),
         ]);
 
         var device = Assert.Single(merged);
@@ -27,11 +27,11 @@ public class DeviceMonitorTests
     {
         var merged = DeviceMonitor.Merge(
         [
-            new Device("2", "Teclado", DeviceKind.Keyboard, 10, T0),
-            new Device("1", "Auriculares", DeviceKind.Headset, 90, T0),
+            new Device("2", "Keyboard", DeviceKind.Keyboard, 10, T0),
+            new Device("1", "Headset", DeviceKind.Headset, 90, T0),
         ]);
 
-        Assert.Equal(["Auriculares", "Teclado"], merged.Select(d => d.Name));
+        Assert.Equal(["Headset", "Keyboard"], merged.Select(d => d.Name));
     }
 
     [Fact]
@@ -48,9 +48,30 @@ public class DeviceMonitorTests
     }
 
     [Fact]
+    public async Task ProviderChanged_TriggersRefreshBeforeNextPoll()
+    {
+        var provider = new SignalingProvider();
+        using var monitor = new DeviceMonitor([provider], TimeSpan.FromHours(1));
+        var refreshed = new TaskCompletionSource<IReadOnlyList<Device>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        monitor.DevicesChanged += (_, devices) =>
+        {
+            if (devices.Count > 0)
+                refreshed.TrySetResult(devices);
+        };
+
+        monitor.Start();
+        await Task.Delay(100);
+        provider.Device = new Device("bt:1", "Mouse", DeviceKind.Mouse, 77, T0);
+        provider.RaiseChanged();
+
+        var devices = await refreshed.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(77, Assert.Single(devices).BatteryPercent);
+    }
+
+    [Fact]
     public async Task FakeProvider_SimulatedDrain_DecreasesPercent()
     {
-        var provider = new FakeBatteryProvider(simulateDrain: true);
+        using var provider = new FakeBatteryProvider(simulateDrain: true);
 
         var first = await provider.GetDevicesAsync();
         var second = await provider.GetDevicesAsync();
@@ -62,7 +83,31 @@ public class DeviceMonitorTests
     {
         public string Name => "Throwing";
 
+        public event EventHandler? Changed { add { } remove { } }
+
         public Task<IReadOnlyList<Device>> GetDevicesAsync(CancellationToken cancellationToken = default) =>
             throw new InvalidOperationException("boom");
+
+        public void Dispose()
+        {
+        }
+    }
+
+    private sealed class SignalingProvider : IBatteryProvider
+    {
+        public Device? Device { get; set; }
+
+        public string Name => "Signaling";
+
+        public event EventHandler? Changed;
+
+        public void RaiseChanged() => Changed?.Invoke(this, EventArgs.Empty);
+
+        public Task<IReadOnlyList<Device>> GetDevicesAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<Device>>(Device is null ? [] : [Device]);
+
+        public void Dispose()
+        {
+        }
     }
 }

@@ -5,8 +5,8 @@ using static BatTray.App.Interop.NativeMethods;
 namespace BatTray.App.Taskbar;
 
 /// <summary>
-/// Localiza la barra de tareas principal y sus zonas. Todo lo que depende de la estructura
-/// interna de Explorer (nombres de clase) está aislado aquí.
+/// Locates the primary taskbar and its regions. Everything that depends on Explorer's internal
+/// structure (window class names) is isolated here.
 /// </summary>
 internal static class TaskbarLocator
 {
@@ -14,7 +14,7 @@ internal static class TaskbarLocator
     public const string NotifyAreaClass = "TrayNotifyWnd";
     public const string TaskButtonsClass = "ReBarWindow32";
 
-    /// <summary>Ancho estimado de la zona de notificación si no se encuentra TrayNotifyWnd (DIP).</summary>
+    /// <summary>Estimated notification-area width when TrayNotifyWnd cannot be found (DIP).</summary>
     private const int FallbackNotifyWidthDip = 300;
 
     public static TaskbarInfo? TryLocate()
@@ -61,7 +61,7 @@ internal static class TaskbarLocator
         return (state & ABS_AUTOHIDE) != 0;
     }
 
-    /// <summary>True si hay una app a pantalla completa (juego D3D, presentación, vídeo…).</summary>
+    /// <summary>True when a full-screen app is running (D3D game, presentation, video…).</summary>
     public static bool IsFullscreenAppRunning()
     {
         if (SHQueryUserNotificationState(out var state) != 0)

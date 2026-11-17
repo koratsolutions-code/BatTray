@@ -11,39 +11,54 @@ using BatTray.Core.Providers;
 namespace BatTray.App;
 
 /// <summary>
-/// Punto de entrada. Argumentos de línea de comandos (prototipo):
-///   --mode child|overlay   estrategia de anclaje a la barra (por defecto: child)
+/// Entry point. Command-line options:
+///   --mode child|overlay   taskbar anchoring strategy (default: child)
+///   --demo                 simulated devices instead of real Bluetooth readings
+///   --list-devices         log one reading of every provider and exit (diagnostics)
 /// </summary>
 public partial class App : Application
 {
     private const string SingleInstanceMutexName = @"Local\KoratSolutions.BatTray";
+    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan DemoPollInterval = TimeSpan.FromSeconds(5);
 
+    private readonly WidgetViewModel _viewModel = new();
     private Mutex? _singleInstance;
     private ThemeWatcher? _theme;
     private TaskbarWatcher? _watcher;
     private TaskbarWidgetHost? _host;
     private TaskButtonsProbe? _buttonsProbe;
     private DeviceMonitor? _monitor;
-    private readonly WidgetViewModel _viewModel = new();
+    private IReadOnlyList<IBatteryProvider> _providers = [];
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        _singleInstance = new Mutex(initiallyOwned: true, SingleInstanceMutexName, out var isFirst);
-        if (!isFirst)
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+            Log.Error("Unhandled exception.", args.ExceptionObject as Exception);
+        CoreDiagnostics.Sink = Log.Info;
+
+        var demo = HasFlag(e.Args, "--demo");
+
+        if (HasFlag(e.Args, "--list-devices"))
         {
-            Log.Info("Ya hay otra instancia de BatTray en ejecución; se cierra esta.");
+            await ListDevicesAsync(demo);
             Shutdown();
             return;
         }
 
-        DispatcherUnhandledException += OnDispatcherUnhandledException;
-        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
-            Log.Error("Excepción no controlada.", args.ExceptionObject as Exception);
+        _singleInstance = new Mutex(initiallyOwned: true, SingleInstanceMutexName, out var isFirst);
+        if (!isFirst)
+        {
+            Log.Info("Another BatTray instance is already running; exiting.");
+            Shutdown();
+            return;
+        }
 
         var mode = ParseMode(e.Args);
-        Log.Info($"Inicio de BatTray {typeof(App).Assembly.GetName().Version} (modo {mode}).");
+        Log.Info($"BatTray {typeof(App).Assembly.GetName().Version} starting (mode {mode}{(demo ? ", demo" : string.Empty)}).");
 
         _theme = new ThemeWatcher(Resources);
 
@@ -58,23 +73,56 @@ public partial class App : Application
         _buttonsProbe = new TaskButtonsProbe(Dispatcher);
         _buttonsProbe.Changed += _host.SetTaskButtonsRight;
 
-        // Prototipo: datos simulados que bajan 1 % cada 5 s para ver el widget actualizarse.
-        _monitor = new DeviceMonitor([new FakeBatteryProvider(simulateDrain: true)], TimeSpan.FromSeconds(5));
+        _providers = CreateProviders(demo);
+        _monitor = new DeviceMonitor(_providers, demo ? DemoPollInterval : PollInterval);
         _monitor.DevicesChanged += OnDevicesChanged;
-        _monitor.ProviderFailed += (_, f) => Log.Error($"Proveedor '{f.Provider.Name}' falló.", f.Error);
+        _monitor.ProviderFailed += (_, f) => Log.Error($"Provider '{f.Provider.Name}' failed.", f.Error);
 
         _watcher.Start();
         _buttonsProbe.Start();
         _monitor.Start();
     }
 
-    private void OnDevicesChanged(object? sender, IReadOnlyList<Device> devices) =>
+    private static IReadOnlyList<IBatteryProvider> CreateProviders(bool demo) =>
+        demo
+            ? [new FakeBatteryProvider(simulateDrain: true)]
+            : [new BleGattBatteryProvider(), new BluetoothPnpBatteryProvider()];
+
+    private static async Task ListDevicesAsync(bool demo)
+    {
+        Log.Info("--list-devices: querying every provider once.");
+        foreach (var provider in CreateProviders(demo))
+        {
+            using (provider)
+            {
+                try
+                {
+                    var devices = await provider.GetDevicesAsync();
+                    Log.Info($"[{provider.Name}] {devices.Count} device(s) with battery data.");
+                    foreach (var d in devices)
+                        Log.Info($"  {d.Name} | {d.Kind} | {d.BatteryPercent?.ToString() ?? "?"}% | {d.Id}");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"[{provider.Name}] failed.", ex);
+                }
+            }
+        }
+    }
+
+    private void OnDevicesChanged(object? sender, IReadOnlyList<Device> devices)
+    {
+        Log.Info($"Devices: {(devices.Count == 0 ? "none" : string.Join(", ", devices.Select(d => $"{d.Name} {d.BatteryPercent?.ToString() ?? "?"}% [{d.Source}]")))}");
         Dispatcher.BeginInvoke(() =>
         {
             _viewModel.Apply(devices);
-            // El ancho del texto puede cambiar (p. ej. 100% → 99%): recalcular tamaño tras el layout.
+            // Text width may change (e.g. 100% → 99%): recompute the size once layout has run.
             Dispatcher.BeginInvoke(() => _host?.Reposition(), DispatcherPriority.Loaded);
         });
+    }
+
+    private static bool HasFlag(string[] args, string flag) =>
+        args.Any(a => a.Equals(flag, StringComparison.OrdinalIgnoreCase));
 
     private static AnchorMode ParseMode(string[] args)
     {
@@ -89,13 +137,15 @@ public partial class App : Application
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        Log.Error("Excepción no controlada en la UI.", e.Exception);
+        Log.Error("Unhandled exception on the UI thread.", e.Exception);
         e.Handled = true;
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
         _monitor?.Dispose();
+        foreach (var provider in _providers)
+            provider.Dispose();
         _buttonsProbe?.Dispose();
         _watcher?.Dispose();
         _host?.Dispose();
@@ -105,7 +155,7 @@ public partial class App : Application
             try { _singleInstance.ReleaseMutex(); } catch (ApplicationException) { }
             _singleInstance.Dispose();
         }
-        Log.Info("BatTray cerrado.");
+        Log.Info("BatTray closed.");
         base.OnExit(e);
     }
 }

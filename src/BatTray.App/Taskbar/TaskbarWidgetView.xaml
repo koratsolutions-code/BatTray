@@ -13,13 +13,13 @@
     </UserControl.Resources>
 
     <!--
-        Fondo casi transparente (alfa 1) en lugar de Transparent: en una ventana con transparencia por píxel,
-        los píxeles con alfa 0 no reciben el ratón, y queremos tooltip y clic derecho en todo el widget.
+        Nearly transparent background (alpha 1) instead of Transparent: in a per-pixel transparent window,
+        pixels with alpha 0 do not receive mouse input, and we want tooltips and right-click on the whole widget.
     -->
     <Grid Background="#01000000">
         <Grid.ContextMenu>
             <ContextMenu>
-                <MenuItem Header="Salir de BatTray" Click="OnExitClick" />
+                <MenuItem Header="Exit BatTray" Click="OnExitClick" />
             </ContextMenu>
         </Grid.ContextMenu>
 

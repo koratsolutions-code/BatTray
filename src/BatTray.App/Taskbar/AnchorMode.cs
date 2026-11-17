@@ -1,11 +1,11 @@
 namespace BatTray.App.Taskbar;
 
-/// <summary>Estrategia para colocar el widget sobre la barra de tareas.</summary>
+/// <summary>Strategy used to place the widget on the taskbar.</summary>
 internal enum AnchorMode
 {
-    /// <summary>A) Ventana hija de Shell_TrayWnd: se mueve y se oculta junto con la barra.</summary>
+    /// <summary>A) Child window of Shell_TrayWnd: moves and hides together with the taskbar.</summary>
     Child,
 
-    /// <summary>B) Ventana emergente propiedad de la barra, siempre encima, reposicionada a mano.</summary>
+    /// <summary>B) Popup owned by the taskbar, always on top, repositioned manually.</summary>
     Overlay,
 }

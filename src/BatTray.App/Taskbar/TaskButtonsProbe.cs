@@ -6,10 +6,10 @@ using static BatTray.App.Interop.NativeMethods;
 namespace BatTray.App.Taskbar;
 
 /// <summary>
-/// En Windows 11 los botones de apps se dibujan con XAML y <c>ReBarWindow32</c> no refleja su extensión real.
-/// Este sondeo usa UI Automation para obtener el borde derecho del último botón (Inicio, Buscar, apps…).
-/// Corre en su propio hilo: las llamadas UIA desde el hilo de UI podrían bloquearse, porque nuestro widget
-/// también forma parte del árbol de la barra.
+/// On Windows 11 the app buttons are drawn with XAML and <c>ReBarWindow32</c> does not reflect their real
+/// extent. This probe uses UI Automation to get the right edge of the last button (Start, Search, apps…).
+/// It runs on its own thread: UIA calls from the UI thread could deadlock, because our widget is part of
+/// the taskbar's automation tree too.
 /// </summary>
 internal sealed class TaskButtonsProbe : IDisposable
 {
@@ -32,7 +32,7 @@ internal sealed class TaskButtonsProbe : IDisposable
         _thread.SetApartmentState(ApartmentState.MTA);
     }
 
-    /// <summary>Borde derecho (px de pantalla) de los botones de la barra; null si no se pudo medir. Se dispara en el hilo de UI.</summary>
+    /// <summary>Right edge (screen px) of the taskbar buttons; null when it cannot be measured. Raised on the UI thread.</summary>
     public event Action<int?>? Changed;
 
     public void Start() => _thread.Start();
@@ -78,7 +78,7 @@ internal sealed class TaskButtonsProbe : IDisposable
         catch (Exception ex)
         {
             if (!_errorLogged)
-                Log.Error("No se pudieron medir los botones de la barra con UI Automation.", ex);
+                Log.Error("Could not measure the taskbar buttons with UI Automation.", ex);
             _errorLogged = true;
             return null;
         }

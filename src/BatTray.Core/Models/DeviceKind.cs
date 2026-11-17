@@ -1,6 +1,6 @@
 namespace BatTray.Core.Models;
 
-/// <summary>Tipo de periférico; determina el icono que se muestra.</summary>
+/// <summary>Peripheral type; determines which icon is shown.</summary>
 public enum DeviceKind
 {
     Other = 0,

@@ -6,8 +6,8 @@ using Microsoft.Win32;
 namespace BatTray.App.Theme;
 
 /// <summary>
-/// Sigue el tema de la barra de tareas (SystemUsesLightTheme) y publica los pinceles del widget
-/// como recursos de aplicación: WidgetForegroundBrush, Level.Good/Low/Critical/Unknown.
+/// Follows the taskbar theme (SystemUsesLightTheme) and publishes the widget brushes as application
+/// resources: WidgetForegroundBrush, Level.Good/Low/Critical/Unknown.
 /// </summary>
 internal sealed class ThemeWatcher : IDisposable
 {
@@ -25,13 +25,13 @@ internal sealed class ThemeWatcher : IDisposable
 
     public bool IsLight => _isLight ?? false;
 
-    /// <summary>Se dispara cuando cambia entre claro y oscuro.</summary>
+    /// <summary>Raised when switching between light and dark.</summary>
     public event Action? ThemeChanged;
 
     public static bool ReadTaskbarUsesLightTheme()
     {
         using var key = Registry.CurrentUser.OpenSubKey(PersonalizeKey);
-        // Si el valor no existe, Windows 11 usa la barra oscura.
+        // When the value is missing, Windows 11 uses a dark taskbar.
         return key?.GetValue("SystemUsesLightTheme") is int value && value != 0;
     }
 
@@ -48,9 +48,9 @@ internal sealed class ThemeWatcher : IDisposable
             return;
 
         _isLight = light;
-        Log.Info($"Tema de la barra: {(light ? "claro" : "oscuro")}");
+        Log.Info($"Taskbar theme: {(light ? "light" : "dark")}");
 
-        // Colores semánticos de Fluent (Windows 11) para cada fondo.
+        // Windows 11 Fluent semantic colours for each background.
         Set("WidgetForegroundBrush", light ? "#1A1A1A" : "#FFFFFF");
         Set("Level.Good", light ? "#0F7B0F" : "#6CCB5F");
         Set("Level.Low", light ? "#9D5D00" : "#FCE100");

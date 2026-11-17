@@ -1,36 +1,47 @@
 # BatTray
 **Your devices. One glance.** — by Korat Solutions
 
-BatTray muestra el nivel de batería de tus periféricos (ratón, teclado, auriculares, mandos…)
-directamente en la barra de tareas de Windows: el icono del dispositivo junto a su porcentaje.
+🌐 **English** · [Español](README.es.md)
+
+BatTray shows the battery level of your peripherals (mouse, keyboard, headset, gamepad…) right on the
+Windows taskbar: the device icon next to its percentage.
 
 ```
 [🖱 50%]  [🎧 80%]  [⌨ 12%]   ⌃  🔊  🔋97%   13:45
 ```
 
-## Requisitos
-- Windows 11 (Windows 10 2004+ como mínimo)
+## Requirements
+- Windows 11 (Windows 10 2004+ at minimum)
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 
-## Estructura
-| Ruta | Contenido |
+## Layout
+| Path | Contents |
 |---|---|
-| `src/BatTray.Core` | Modelos, proveedores de batería (Bluetooth LE / clásico), monitor de dispositivos, ajustes |
-| `src/BatTray.App` | App WPF: widget de barra de tareas, icono de bandeja |
-| `tests/BatTray.Tests` | Tests unitarios (xUnit) de `BatTray.Core` |
+| `src/BatTray.Core` | Models, battery providers (Bluetooth LE / classic), device monitor, settings |
+| `src/BatTray.App` | WPF app: taskbar widget, tray icon |
+| `tests/BatTray.Tests` | Unit tests (xUnit) for `BatTray.Core` |
 
-## Compilar y ejecutar
+## Build and run
 ```bash
 dotnet build
 dotnet test
 dotnet run --project src/BatTray.App
 ```
 
-## Estado
-🚧 En desarrollo — fase 1: prototipo del widget de barra de tareas con datos simulados.
+### Command-line options
+| Option | Description |
+|---|---|
+| `--mode child` | *(default)* The widget is a child window of the taskbar. |
+| `--mode overlay` | Popup placed on top of the taskbar (fallback strategy). |
+| `--demo` | Show simulated devices instead of reading real batteries. |
 
-Opciones de línea de comandos (prototipo):
-- `--mode child` (por defecto): el widget es una ventana hija de la barra de tareas.
-- `--mode overlay`: ventana emergente encima de la barra (estrategia alternativa).
+To quit: right-click the widget → **Exit BatTray**. Logs are written to `%LocalAppData%\KoratSolutions\BatTray\logs`.
 
-Para cerrar: clic derecho sobre el widget → **Salir de BatTray**. Logs en `%LocalAppData%\KoratSolutions\BatTray\logs`.
+## Supported battery sources
+| Source | Devices | How |
+|---|---|---|
+| Bluetooth LE | Modern mice, keyboards, headsets | GATT Battery Service (0x180F) |
+| Bluetooth (Windows) | Classic headsets and any device Windows reports | PnP property `DEVPKEY_Bluetooth_Battery`, the same value shown in Settings |
+
+## Status
+🚧 In development — phase 2: real Bluetooth battery readings.
