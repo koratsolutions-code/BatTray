@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows;
+using BatTray.App.Theme;
 
 namespace BatTray.App.Usage;
 
@@ -9,6 +10,7 @@ public partial class LevelDialog : Window
     public LevelDialog(string deviceName, int currentPercent)
     {
         InitializeComponent();
+        ThemeWatcher.ApplyTitleBar(this);
         TitleText.Text = deviceName;
         PercentBox.Text = currentPercent.ToString(CultureInfo.CurrentCulture);
         Loaded += (_, _) =>

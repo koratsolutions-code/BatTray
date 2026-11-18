@@ -70,12 +70,12 @@
 
 <nav>
   <div class="wrap" data-lang="en">
-    <a href="#what">What it does</a><a href="#start">Getting started</a><a href="#taskbar">Taskbar</a><a href="#menu">Menu</a>
+    <a href="#what">What it does</a><a href="#start">Getting started</a><a href="#taskbar">Taskbar</a><a href="#menu">Menu</a><a href="#settings">Settings</a>
     <a href="#nodata">Devices without battery data</a><a href="#customize">Customize</a><a href="#supported">Supported devices</a>
     <a href="#privacy">Privacy &amp; safety</a><a href="#help">Troubleshooting</a>
   </div>
   <div class="wrap" data-lang="es">
-    <a href="#what">Qué hace</a><a href="#start">Primeros pasos</a><a href="#taskbar">Barra de tareas</a><a href="#menu">Menú</a>
+    <a href="#what">Qué hace</a><a href="#start">Primeros pasos</a><a href="#taskbar">Barra de tareas</a><a href="#menu">Menú</a><a href="#settings">Ajustes</a>
     <a href="#nodata">Dispositivos sin datos</a><a href="#customize">Personalizar</a><a href="#supported">Dispositivos soportados</a>
     <a href="#privacy">Privacidad y seguridad</a><a href="#help">Solución de problemas</a>
   </div>
@@ -132,14 +132,14 @@
     <li>If Windows shows <i>"Windows protected your PC"</i>, click <b>More info → Run anyway</b>. This appears because the installer is new and not yet code-signed.</li>
     <li>Accept the license and click <b>Install</b>. At the end, leave <b>Launch BatTray</b> ticked.</li>
     <li>Turn on your devices. Battery levels appear on the taskbar within a minute (Bluetooth devices must be paired in Windows Settings first).</li>
-    <li>Right-click the widget and tick <b>Start with Windows</b> so BatTray is always there.</li>
+    <li>BatTray starts with Windows; you can change it in <b>Settings…</b>.</li>
   </ol>
   <ol data-lang="es">
     <li>Ejecuta <code>BatTray-Setup-1.0.0.msi</code>. Se instala solo para tu usuario, sin permisos de administrador.</li>
     <li>Si Windows muestra <i>"Windows protegió su PC"</i>, pulsa <b>Más información → Ejecutar de todas formas</b>. Aparece porque el instalador es nuevo y aún no está firmado digitalmente.</li>
     <li>Acepta la licencia y pulsa <b>Install</b>. Al final, deja marcado <b>Launch BatTray</b>.</li>
     <li>Enciende tus dispositivos. Los niveles aparecen en la barra en menos de un minuto (los Bluetooth deben estar emparejados antes en Configuración de Windows).</li>
-    <li>Haz clic derecho en el widget y marca <b>Start with Windows</b> para que BatTray esté siempre.</li>
+    <li>BatTray se inicia con Windows; puedes cambiarlo en <b>Ajustes…</b>.</li>
   </ol>
   <p class="muted" data-lang="en">Requirements: Windows 11, or Windows 10 version 2004 or later, 64-bit.</p>
   <p class="muted" data-lang="es">Requisitos: Windows 11, o Windows 10 versión 2004 o posterior, de 64 bits.</p>
@@ -163,30 +163,48 @@
   </table></div>
   <div class="note" data-lang="en">When the taskbar is full, BatTray hides the devices with the most battery first so it never covers your app buttons. The tray icon (in the notification area) is always available.</div>
   <div class="note" data-lang="es">Cuando la barra está llena, BatTray oculta primero los dispositivos con más batería para no tapar nunca los botones de tus apps. El icono de la bandeja (en el área de notificación) siempre está disponible.</div>
-  <p data-lang="en"><b>Low battery alert:</b> when a device drops to 15 %, Windows shows one notification. It is not repeated until the device is charged.</p>
-  <p data-lang="es"><b>Alerta de batería baja:</b> cuando un dispositivo baja al 15 %, Windows muestra una notificación. No se repite hasta que lo cargues.</p>
+  <p data-lang="en"><b>Low battery alert:</b> when a device drops to the critical level (15 % by default), Windows shows one notification. It is not repeated until the device is charged.</p>
+  <p data-lang="es"><b>Alerta de batería baja:</b> cuando un dispositivo baja al nivel crítico (15 % por defecto), Windows muestra una notificación. No se repite hasta que lo cargues.</p>
 </section>
 
 <!-- ============================== MENU ============================== -->
 <section id="menu">
   <h2 data-lang="en">The menu</h2>
   <h2 data-lang="es">El menú</h2>
+  <p data-lang="en">Right-click the widget or the BatTray icon in the notification area.</p>
+  <p data-lang="es">Haz clic derecho en el widget o en el icono de BatTray del área de notificación.</p>
   <div class="table-scroll"><table>
     <tr><th data-lang="en">Item</th><th data-lang="es">Opción</th><th data-lang="en">What it does</th><th data-lang="es">Qué hace</th></tr>
-    <tr><td><i data-lang="en">(each device)</i><i data-lang="es">(cada dispositivo)</i></td>
-        <td data-lang="en">Tick or untick to show or hide it on the taskbar.</td><td data-lang="es">Márcalo o desmárcalo para mostrarlo u ocultarlo en la barra.</td></tr>
-    <tr><td>Devices without battery data</td>
-        <td data-lang="en">Set a level or estimate it from usage — see <a href="#nodata">below</a>.</td><td data-lang="es">Fija un nivel o estímalo por uso; ver <a href="#nodata">más abajo</a>.</td></tr>
-    <tr><td>Customize devices…</td>
-        <td data-lang="en">Rename devices and change their icons — see <a href="#customize">below</a>.</td><td data-lang="es">Cambia nombres e iconos; ver <a href="#customize">más abajo</a>.</td></tr>
-    <tr><td>Start with Windows</td><td data-lang="en">Start BatTray when you sign in.</td><td data-lang="es">Inicia BatTray al entrar en Windows.</td></tr>
-    <tr><td>Low battery alerts</td><td data-lang="en">Turn the 15 % notification on or off.</td><td data-lang="es">Activa o desactiva la notificación del 15 %.</td></tr>
-    <tr><td>Save diagnostics report…</td><td data-lang="en">Creates a text file describing every device found. Useful when asking for support.</td><td data-lang="es">Crea un archivo de texto con todos los dispositivos encontrados. Útil para pedir soporte.</td></tr>
-    <tr><td>Open log folder</td><td data-lang="en">Opens BatTray's log files.</td><td data-lang="es">Abre los archivos de registro de BatTray.</td></tr>
-    <tr><td>User guide</td><td data-lang="en">Opens this guide.</td><td data-lang="es">Abre esta guía.</td></tr>
-    <tr><td>About BatTray</td><td data-lang="en">Version, website and license.</td><td data-lang="es">Versión, web y licencia.</td></tr>
-    <tr><td>Exit BatTray</td><td data-lang="en">Closes BatTray until you start it again (Start menu → BatTray).</td><td data-lang="es">Cierra BatTray hasta que lo vuelvas a abrir (menú Inicio → BatTray).</td></tr>
+    <tr><td><i data-lang="en">(each device)</i><i data-lang="es">(cada dispositivo)</i></td><td data-lang="en">Tick or untick to show or hide it on the taskbar. Devices are grouped into <b>Bluetooth</b>, <b>2.4 GHz (USB receiver)</b> and <b>Controllers</b>.</td><td data-lang="es">Márcalo o desmárcalo para mostrarlo u ocultarlo en la barra. Los dispositivos se agrupan en <b>Bluetooth</b>, <b>2,4 GHz (receptor USB)</b> y <b>Mandos</b>.</td></tr>
+    <tr><td><span data-lang="en">Receivers with <i>no battery data</i></span><span data-lang="es">Receptores <i>sin datos de batería</i></span></td><td data-lang="en">Listed under 2.4 GHz: set a level or estimate it from usage — see <a href="#nodata">below</a> — or <b>Hide this receiver</b>.</td><td data-lang="es">Aparecen en 2,4 GHz: fija un nivel o estímalo por uso (ver <a href="#nodata">más abajo</a>), u <b>Ocultar este receptor</b>.</td></tr>
+    <tr><td><span data-lang="en">Customize devices…</span><span data-lang="es">Personalizar dispositivos…</span></td><td data-lang="en">Rename devices and change their icons — see <a href="#customize">below</a>.</td><td data-lang="es">Cambia nombres e iconos; ver <a href="#customize">más abajo</a>.</td></tr>
+    <tr><td><span data-lang="en">Settings…</span><span data-lang="es">Ajustes…</span></td><td data-lang="en">Levels, alerts, language, theme, start with Windows, updates — see <a href="#settings">below</a>.</td><td data-lang="es">Niveles, alertas, idioma, tema, inicio con Windows y actualizaciones; ver <a href="#settings">más abajo</a>.</td></tr>
+    <tr><td><span data-lang="en">Update available: BatTray x.y</span><span data-lang="es">Actualización disponible: BatTray x.y</span></td><td data-lang="en">Appears when a new version is published. Opens the download page.</td><td data-lang="es">Aparece cuando hay una versión nueva. Abre la página de descarga.</td></tr>
+    <tr><td><span data-lang="en">Report a problem…</span><span data-lang="es">Informar de un problema…</span></td><td data-lang="en">Saves a diagnostics report, shows it in File Explorer and opens a pre-filled GitHub issue to attach it to.</td><td data-lang="es">Guarda un informe de diagnóstico, lo muestra en el Explorador y abre una incidencia de GitHub ya rellenada para adjuntarlo.</td></tr>
+    <tr><td><span data-lang="en">User guide</span><span data-lang="es">Guía de usuario</span></td><td data-lang="en">Opens this guide.</td><td data-lang="es">Abre esta guía.</td></tr>
+    <tr><td><span data-lang="en">About BatTray</span><span data-lang="es">Acerca de BatTray</span></td><td data-lang="en">Version, website and license.</td><td data-lang="es">Versión, web y licencia.</td></tr>
+    <tr><td><span data-lang="en">Exit BatTray</span><span data-lang="es">Salir de BatTray</span></td><td data-lang="en">Closes BatTray until you start it again (Start menu → BatTray).</td><td data-lang="es">Cierra BatTray hasta que lo vuelvas a abrir (menú Inicio → BatTray).</td></tr>
   </table></div>
+</section>
+
+<!-- ============================== SETTINGS ============================== -->
+<section id="settings">
+  <h2 data-lang="en">Settings</h2>
+  <h2 data-lang="es">Ajustes</h2>
+  <p data-lang="en">Changes apply at once.</p>
+  <p data-lang="es">Los cambios se aplican al momento.</p>
+  <div class="table-scroll"><table>
+    <tr><th data-lang="en">Setting</th><th data-lang="es">Ajuste</th><th data-lang="en">Default</th><th data-lang="es">Por defecto</th></tr>
+    <tr><td><span data-lang="en">Low level (amber) / critical level (red)</span><span data-lang="es">Nivel bajo (ámbar) / nivel crítico (rojo)</span></td><td data-lang="en">below 30 % / below 15 %</td><td data-lang="es">por debajo del 30 % / del 15 %</td></tr>
+    <tr><td><span data-lang="en">Notify me when a device reaches the critical level</span><span data-lang="es">Avisarme cuando un dispositivo llegue al nivel crítico</span></td><td data-lang="en">on</td><td data-lang="es">activado</td></tr>
+    <tr><td><span data-lang="en">Language</span><span data-lang="es">Idioma</span></td><td data-lang="en">same as Windows (English or Spanish)</td><td data-lang="es">igual que Windows (español o inglés)</td></tr>
+    <tr><td><span data-lang="en">Menus and windows (theme)</span><span data-lang="es">Menús y ventanas (tema)</span></td><td data-lang="en">same as Windows (light or dark)</td><td data-lang="es">igual que Windows (claro u oscuro)</td></tr>
+    <tr><td><span data-lang="en">Start with Windows</span><span data-lang="es">Iniciar con Windows</span></td><td data-lang="en">on after installing</td><td data-lang="es">activado al instalar</td></tr>
+    <tr><td><span data-lang="en">Show on the taskbar of every monitor</span><span data-lang="es">Mostrar en la barra de cada monitor</span></td><td data-lang="en">on (applies after restarting BatTray)</td><td data-lang="es">activado (se aplica al reiniciar BatTray)</td></tr>
+    <tr><td><span data-lang="en">Check for new versions once a day</span><span data-lang="es">Buscar nuevas versiones una vez al día</span></td><td data-lang="en">on — <b>Check now</b> checks at once</td><td data-lang="es">activado; <b>Comprobar ahora</b> lo hace al momento</td></tr>
+  </table></div>
+  <p data-lang="en">Settings also has <b>Save diagnostics report…</b> and <b>Open log folder</b> for troubleshooting.</p>
+  <p data-lang="es">Ajustes también tiene <b>Guardar informe de diagnóstico…</b> y <b>Abrir carpeta de registros</b> para resolver problemas.</p>
 </section>
 
 <!-- ============================== NO DATA ============================== -->
@@ -194,15 +212,15 @@
   <h2 data-lang="en">Devices without battery data</h2>
   <h2 data-lang="es">Dispositivos sin datos de batería</h2>
   <p data-lang="en">Some devices — many budget headsets and mice — never send their battery level to the PC, so no program can read it.
-    BatTray lists their receivers under <b>Devices without battery data</b> and offers two options:</p>
+    Their receivers appear under <b>2.4 GHz</b> marked <i>no battery data</i>, with two options:</p>
   <p data-lang="es">Algunos dispositivos —muchos auriculares y ratones económicos— nunca envían su nivel de batería al PC, así que ningún
-    programa puede leerlo. BatTray muestra sus receptores en <b>Devices without battery data</b> con dos opciones:</p>
+    programa puede leerlo. Sus receptores aparecen en <b>2,4 GHz</b> marcados como <i>sin datos de batería</i>, con dos opciones:</p>
 
-  <h3>Set level manually</h3>
+  <h3><span data-lang="en">Set level manually</span><span data-lang="es">Fijar nivel manualmente</span></h3>
   <p data-lang="en">Pick 100 / 75 / 50 / 25 % or <i>Other…</i>. The level stays where you put it until you change it.</p>
-  <p data-lang="es">Elige 100 / 75 / 50 / 25 % u <i>Other…</i>. El nivel se queda donde lo pongas hasta que lo cambies.</p>
+  <p data-lang="es">Elige 100 / 75 / 50 / 25 % u <i>Otro…</i>. El nivel se queda donde lo pongas hasta que lo cambies.</p>
 
-  <h3>Estimate from usage</h3>
+  <h3><span data-lang="en">Estimate from usage</span><span data-lang="es">Estimar por tiempo de uso</span></h3>
   <p data-lang="en">Enter the battery life on a full charge (hours of use, from the box or the product page) and the current charge.
     BatTray then counts how long you use the device:</p>
   <p data-lang="es">Indica la autonomía con una carga completa (horas de uso, según la caja o la página del producto) y la carga actual.
@@ -215,7 +233,7 @@
   <ul data-lang="es">
     <li>Un auricular cuenta como en uso mientras suena audio por él y durante los 10 minutos siguientes.</li>
     <li>Un ratón o teclado cuenta como en uso mientras lo mueves o escribes, y durante los 10 minutos siguientes.</li>
-    <li>Después de cada carga, elige <b>I just charged it</b>. Si la estimación se desvía, usa <b>Set current level</b> o ajusta la autonomía.</li>
+    <li>Después de cada carga, elige <b>Lo acabo de cargar</b>. Si la estimación se desvía, usa <b>Ajustar nivel actual</b> o ajusta la autonomía.</li>
   </ul>
   <div class="note" data-lang="en">Both modes are shown with a <b>~</b>. An estimate is an approximation: real battery life depends on volume, lighting and battery age.</div>
   <div class="note" data-lang="es">Ambos modos se muestran con <b>~</b>. La estimación es una aproximación: la autonomía real depende del volumen, las luces y la edad de la batería.</div>
@@ -226,7 +244,7 @@
   <h2 data-lang="en">Customize devices</h2>
   <h2 data-lang="es">Personalizar dispositivos</h2>
   <p data-lang="en">Open <b>Customize devices…</b> from the menu, pick a device and:</p>
-  <p data-lang="es">Abre <b>Customize devices…</b> desde el menú, elige un dispositivo y:</p>
+  <p data-lang="es">Abre <b>Personalizar dispositivos…</b> desde el menú, elige un dispositivo y:</p>
   <ul data-lang="en">
     <li><b>Name</b>: give it any name (up to 60 characters).</li>
     <li><b>Icon</b>: choose from mouse, keyboard, headset, earbuds, speaker, microphone, gamepad, trackball, pen, phone, tablet, watch, battery or Bluetooth.</li>
@@ -234,10 +252,10 @@
     <li>Click <b>Save</b>. <b>Reset to default</b> restores the original name and icon.</li>
   </ul>
   <ul data-lang="es">
-    <li><b>Name</b>: ponle el nombre que quieras (hasta 60 caracteres).</li>
-    <li><b>Icon</b>: elige entre ratón, teclado, auricular, earbuds, altavoz, micrófono, mando, trackball, lápiz, teléfono, tablet, reloj, batería o Bluetooth.</li>
-    <li><b>Upload image…</b>: usa tu propia imagen (PNG, JPG, BMP, GIF o ICO, hasta 10 MB). Se reduce a 64×64; las imágenes simples, cuadradas y con buen contraste se ven mejor en la barra.</li>
-    <li>Pulsa <b>Save</b>. <b>Reset to default</b> vuelve al nombre y al icono originales.</li>
+    <li><b>Nombre</b>: ponle el nombre que quieras (hasta 60 caracteres).</li>
+    <li><b>Icono</b>: elige entre ratón, teclado, auricular, earbuds, altavoz, micrófono, mando, trackball, lápiz, teléfono, tablet, reloj, batería o Bluetooth.</li>
+    <li><b>Subir imagen…</b>: usa tu propia imagen (PNG, JPG, BMP, GIF o ICO, hasta 10 MB). Se reduce a 64×64; las imágenes simples, cuadradas y con buen contraste se ven mejor en la barra.</li>
+    <li>Pulsa <b>Guardar</b>. <b>Restablecer</b> vuelve al nombre y al icono originales.</li>
   </ul>
 </section>
 
@@ -279,13 +297,13 @@
   <h2 data-lang="en">Privacy &amp; safety</h2>
   <h2 data-lang="es">Privacidad y seguridad</h2>
   <ul data-lang="en">
-    <li>BatTray never connects to the internet and collects no data.</li>
+    <li>BatTray collects no data. Its only network request is the optional daily update check: an anonymous request to GitHub for the latest version number (turn it off in Settings).</li>
     <li>It only sends <b>read-only</b> battery queries, and only to receivers it recognises. It never changes device settings or firmware. Unrecognised receivers are never written to.</li>
     <li>For usage estimates it only checks <i>whether</i> sound is playing and <i>which</i> device you are using — never what you hear or type.</li>
     <li>Settings are stored in <code>%AppData%\KoratSolutions\BatTray</code>; logs in <code>%LocalAppData%\KoratSolutions\BatTray\logs</code>.</li>
   </ul>
   <ul data-lang="es">
-    <li>BatTray nunca se conecta a internet y no recopila datos.</li>
+    <li>BatTray no recopila datos. Su única conexión es la comprobación diaria opcional de actualizaciones: una consulta anónima a GitHub del número de la última versión (se desactiva en Ajustes).</li>
     <li>Solo envía consultas de batería <b>de lectura</b>, y solo a receptores que reconoce. Nunca cambia ajustes ni firmware de los dispositivos. A los receptores desconocidos nunca se les escribe nada.</li>
     <li>Para las estimaciones solo comprueba <i>si</i> suena audio y <i>qué</i> dispositivo usas, nunca lo que escuchas o escribes.</li>
     <li>Los ajustes se guardan en <code>%AppData%\KoratSolutions\BatTray</code>; los registros en <code>%LocalAppData%\KoratSolutions\BatTray\logs</code>.</li>
@@ -299,11 +317,11 @@
   <div class="table-scroll"><table>
     <tr><th data-lang="en">Problem</th><th data-lang="es">Problema</th><th data-lang="en">What to do</th><th data-lang="es">Qué hacer</th></tr>
     <tr><td data-lang="en">A Bluetooth device does not appear</td><td data-lang="es">Un dispositivo Bluetooth no aparece</td>
-        <td data-lang="en">Check that it is connected and that Windows shows its battery in Settings → Bluetooth &amp; devices. If Windows does not, the device does not report it: use <i>Devices without battery data</i>.</td>
-        <td data-lang="es">Comprueba que está conectado y que Windows muestra su batería en Configuración → Bluetooth y dispositivos. Si Windows no la muestra, el dispositivo no la informa: usa <i>Devices without battery data</i>.</td></tr>
+        <td data-lang="en">Check that it is connected and that Windows shows its battery in Settings → Bluetooth &amp; devices. If Windows does not, the device does not report it: set a level or estimate it under <i>2.4 GHz</i>.</td>
+        <td data-lang="es">Comprueba que está conectado y que Windows muestra su batería en Configuración → Bluetooth y dispositivos. Si Windows no la muestra, el dispositivo no la informa: fija un nivel o estímalo en <i>2,4 GHz</i>.</td></tr>
     <tr><td data-lang="en">A USB receiver shows no level</td><td data-lang="es">Un receptor USB no muestra nivel</td>
-        <td data-lang="en">Move the mouse or turn the device on (it may be asleep). If it never appears, it is not supported yet: use <i>Devices without battery data</i> and send a diagnostics report.</td>
-        <td data-lang="es">Mueve el ratón o enciende el dispositivo (puede estar dormido). Si nunca aparece, aún no está soportado: usa <i>Devices without battery data</i> y envía un informe de diagnóstico.</td></tr>
+        <td data-lang="en">Move the mouse or turn the device on (it may be asleep). If it never appears, it is not supported yet: set a level or estimate it under <i>2.4 GHz</i> and send a diagnostics report.</td>
+        <td data-lang="es">Mueve el ratón o enciende el dispositivo (puede estar dormido). Si nunca aparece, aún no está soportado: fija un nivel o estímalo en <i>2,4 GHz</i> y envía un informe de diagnóstico.</td></tr>
     <tr><td data-lang="en">The widget is not on the taskbar</td><td data-lang="es">El widget no está en la barra</td>
         <td data-lang="en">The taskbar may be full (devices are hidden to keep app buttons visible) or no device has data yet. The tray icon is always available.</td>
         <td data-lang="es">La barra puede estar llena (se ocultan dispositivos para no tapar los botones) o ningún dispositivo tiene datos aún. El icono de la bandeja siempre está disponible.</td></tr>
@@ -311,10 +329,8 @@
         <td data-lang="en">Click <b>More info → Run anyway</b>. The installer is not code-signed yet.</td>
         <td data-lang="es">Pulsa <b>Más información → Ejecutar de todas formas</b>. El instalador aún no está firmado.</td></tr>
   </table></div>
-  <p data-lang="en"><b>Asking for support:</b> right-click BatTray → <b>Save diagnostics report…</b> and attach the file to an issue at
-    <a href="https://github.com/koratsolutions-code/BatTray/issues">github.com/koratsolutions-code/BatTray/issues</a>.</p>
-  <p data-lang="es"><b>Pedir soporte:</b> clic derecho en BatTray → <b>Save diagnostics report…</b> y adjunta el archivo en
-    <a href="https://github.com/koratsolutions-code/BatTray/issues">github.com/koratsolutions-code/BatTray/issues</a>.</p>
+  <p data-lang="en"><b>Asking for support:</b> right-click BatTray → <b>Report a problem…</b>. BatTray saves a diagnostics report, shows it in File Explorer and opens a pre-filled issue at <a href="https://github.com/koratsolutions-code/BatTray/issues">github.com/koratsolutions-code/BatTray/issues</a>; describe the problem and drag the report into it.</p>
+  <p data-lang="es"><b>Pedir soporte:</b> clic derecho en BatTray → <b>Informar de un problema…</b>. BatTray guarda un informe de diagnóstico, lo muestra en el Explorador y abre una incidencia ya rellenada en <a href="https://github.com/koratsolutions-code/BatTray/issues">github.com/koratsolutions-code/BatTray/issues</a>; describe el problema y arrastra el informe.</p>
 
   <h3 data-lang="en">Uninstall</h3>
   <h3 data-lang="es">Desinstalar</h3>
@@ -325,7 +341,7 @@
 </main>
 
 <footer>
-  <div class="wrap">BatTray 1.0 · © 2026 Korat Solutions · MIT License ·
+  <div class="wrap">BatTray · © 2026 Korat Solutions · MIT License ·
     <a href="https://github.com/koratsolutions-code/BatTray">github.com/koratsolutions-code/BatTray</a></div>
 </footer>
 

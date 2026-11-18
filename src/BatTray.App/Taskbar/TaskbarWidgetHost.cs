@@ -15,6 +15,9 @@ internal sealed class TaskbarWidgetHost : IDisposable
     /// <summary>Gap between the widget and its neighbours (DIP).</summary>
     private const double GapDip = 4;
 
+    /// <summary>Two rows of devices need at least this taskbar height (Windows 11 default: 48).</summary>
+    private const double MinTwoRowHeightDip = 40;
+
     private readonly AnchorMode _mode;
     private readonly FrameworkElement _view;
     private readonly WidgetViewModel _viewModel;
@@ -58,13 +61,23 @@ internal sealed class TaskbarWidgetHost : IDisposable
         var gapPx = (int)Math.Round(GapDip * scale);
         var rightPx = info.NotifyArea.Left - gapPx;
 
-        // Never cover the app buttons: when not every device fits, hide the ones with the most battery.
+        // Never cover the app buttons. When not every device fits, draw them smaller, then in two rows
+        // (when the taskbar is tall enough), and only then hide the ones with the most battery.
         var buttonsRight = _taskButtonsRight ?? (info.TaskButtons.IsEmpty ? (int?)null : info.TaskButtons.Right);
         var availablePx = buttonsRight is null ? int.MaxValue : rightPx - (buttonsRight.Value + gapPx);
+        var heightDip = heightPx / scale;
+        var maxDensity = heightDip >= MinTwoRowHeightDip ? WidgetViewModel.MaxDensity : WidgetViewModel.FirstTwoRowDensity - 1;
+        _viewModel.RowHeight = Math.Floor(heightDip / 2) - 1;
 
         _viewModel.ShowAll();
-        var widthPx = MeasureWidthPx(heightPx, scale);
-        var fits = widthPx <= availablePx;
+        var widthPx = 0;
+        var fits = false;
+        for (var density = 0; density <= maxDensity && !fits; density++)
+        {
+            _viewModel.Density = density;
+            widthPx = MeasureWidthPx(heightPx, scale);
+            fits = widthPx <= availablePx;
+        }
         while (!fits && _viewModel.HideLeastUrgent())
         {
             widthPx = MeasureWidthPx(heightPx, scale);
@@ -76,7 +89,7 @@ internal sealed class TaskbarWidgetHost : IDisposable
         if (state != _lastShownCount)
         {
             Log.Info(fits
-                ? $"Widget: {shown}/{_viewModel.Devices.Count} devices shown, {widthPx}px (available: {(buttonsRight is null ? "unbounded" : availablePx + "px")})."
+                ? $"Widget: {shown}/{_viewModel.Devices.Count} devices shown, density {_viewModel.Density}, {widthPx}px (available: {(buttonsRight is null ? "unbounded" : availablePx + "px")})."
                 : $"Widget hidden: not enough room (available {availablePx}px).");
             _lastShownCount = state;
         }

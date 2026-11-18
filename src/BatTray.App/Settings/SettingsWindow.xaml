@@ -1,0 +1,75 @@
+<Window x:Class="BatTray.App.Settings.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Style="{StaticResource ThemedWindow}"
+        Icon="/Assets/BatTray.ico"
+        ResizeMode="NoResize"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterScreen">
+
+    <DockPanel Width="480">
+        <Border DockPanel.Dock="Bottom" Style="{StaticResource DialogFooter}">
+            <Button x:Name="CloseButton" HorizontalAlignment="Right" MinWidth="90" IsCancel="True" IsDefault="True" Click="OnClose" />
+        </Border>
+
+        <StackPanel Margin="24,20,24,18">
+            <!-- Battery -->
+            <TextBlock x:Name="BatteryTitle" Style="{StaticResource SectionTitle}" />
+            <Grid Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="46" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="LowLabel" VerticalAlignment="Center" Margin="0,4" />
+                <Slider x:Name="LowSlider" Grid.Column="1" Minimum="5" Maximum="60" TickFrequency="5" IsSnapToTickEnabled="True"
+                        VerticalAlignment="Center" ValueChanged="OnLowChanged" />
+                <TextBlock x:Name="LowValue" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="SemiBold"
+                           Foreground="{DynamicResource Panel.Level.Low}" />
+                <TextBlock x:Name="CriticalLabel" Grid.Row="1" VerticalAlignment="Center" Margin="0,4" />
+                <Slider x:Name="CriticalSlider" Grid.Row="1" Grid.Column="1" Minimum="5" Maximum="40" TickFrequency="5" IsSnapToTickEnabled="True"
+                        VerticalAlignment="Center" ValueChanged="OnCriticalChanged" />
+                <TextBlock x:Name="CriticalValue" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="SemiBold"
+                           Foreground="{DynamicResource Panel.Level.Critical}" />
+            </Grid>
+            <CheckBox x:Name="AlertsBox" Margin="0,6,0,0" Click="OnAlertsClick" />
+
+            <!-- Appearance -->
+            <TextBlock x:Name="AppearanceTitle" Style="{StaticResource SectionTitle}" Margin="0,22,0,8" />
+            <TextBlock x:Name="LanguageLabel" Margin="0,0,0,5" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <RadioButton x:Name="LangAuto" GroupName="Lang" Tag="auto" Checked="OnLanguageChecked" />
+                <RadioButton x:Name="LangEn" GroupName="Lang" Tag="en" Content="English" Checked="OnLanguageChecked" />
+                <RadioButton x:Name="LangEs" GroupName="Lang" Tag="es" Content="Español" Checked="OnLanguageChecked" />
+            </StackPanel>
+            <TextBlock x:Name="ThemeLabel" Margin="0,0,0,5" />
+            <StackPanel Orientation="Horizontal">
+                <RadioButton x:Name="ThemeAuto" GroupName="Theme" Tag="auto" Checked="OnThemeChecked" />
+                <RadioButton x:Name="ThemeLight" GroupName="Theme" Tag="light" Checked="OnThemeChecked" />
+                <RadioButton x:Name="ThemeDark" GroupName="Theme" Tag="dark" Checked="OnThemeChecked" />
+            </StackPanel>
+
+            <!-- General -->
+            <TextBlock x:Name="GeneralTitle" Style="{StaticResource SectionTitle}" Margin="0,22,0,8" />
+            <CheckBox x:Name="StartBox" Click="OnStartClick" />
+            <CheckBox x:Name="AllTaskbarsBox" Margin="0,10,0,0" Click="OnAllTaskbarsClick" />
+            <TextBlock x:Name="RestartHint" Style="{StaticResource Muted}" Margin="27,2,0,0" />
+            <CheckBox x:Name="UpdatesBox" Margin="0,10,0,0" Click="OnUpdatesClick" />
+            <TextBlock x:Name="UpdatesHint" Style="{StaticResource Muted}" Margin="27,2,0,0" />
+            <StackPanel Orientation="Horizontal" Margin="27,8,0,0">
+                <Button x:Name="CheckNowButton" Click="OnCheckNow" />
+                <TextBlock x:Name="UpdateStatus" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap" MaxWidth="290" />
+            </StackPanel>
+
+            <!-- Troubleshooting -->
+            <StackPanel Orientation="Horizontal" Margin="0,22,0,0">
+                <Button x:Name="DiagnosticsButton" Click="OnDiagnostics" />
+                <Button x:Name="LogsButton" Margin="8,0,0,0" Click="OnLogs" />
+            </StackPanel>
+        </StackPanel>
+    </DockPanel>
+</Window>

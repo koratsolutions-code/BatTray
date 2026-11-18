@@ -1,0 +1,69 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Shared styles for BatTray's windows. They only set colours (App.* brushes published by ThemeWatcher) and
+        keep the standard Windows controls, so menus, buttons and check boxes look like classic Windows.
+        Menus are not styled at all.
+    -->
+
+    <Style x:Key="ThemedWindow" TargetType="Window">
+        <Setter Property="Background" Value="{DynamicResource App.Background}" />
+        <Setter Property="Foreground" Value="{DynamicResource App.Text}" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="UseLayoutRounding" Value="True" />
+    </Style>
+
+    <!-- Text colours inside themed windows (standard templates; only colours change). -->
+    <Style TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Window}}" />
+    </Style>
+    <Style TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Window}}" />
+        <Setter Property="Margin" Value="0,0,16,0" />
+    </Style>
+    <Style TargetType="TextBox">
+        <Setter Property="Padding" Value="3,2" />
+        <Setter Property="Background" Value="{DynamicResource App.InputBackground}" />
+        <Setter Property="Foreground" Value="{DynamicResource App.Text}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource App.Text}" />
+    </Style>
+    <Style TargetType="Button">
+        <Setter Property="Padding" Value="12,4" />
+    </Style>
+    <Style TargetType="ListBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource App.Text}" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style TargetType="Hyperlink">
+        <Setter Property="Foreground" Value="{DynamicResource App.Accent}" />
+        <Setter Property="TextDecorations" Value="None" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="TextDecorations" Value="Underline" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Footer bar of dialogs (buttons). -->
+    <Style x:Key="DialogFooter" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource App.Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource App.Border}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+        <Setter Property="Padding" Value="20,12" />
+    </Style>
+
+    <Style x:Key="Muted" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource App.Muted}" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style x:Key="SectionTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+</ResourceDictionary>

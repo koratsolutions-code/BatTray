@@ -13,6 +13,8 @@ namespace BatTray.Core.Providers;
 /// service/profile). They all share a ContainerId, so nodes are grouped by it: the battery may live on
 /// any node, while the name, address and Class of Device come from the <c>BTHENUM\DEV_</c> /
 /// <c>BTHLE\DEV_</c> device node.
+/// Paired devices stay "present" and keep their last battery value after they disconnect, so only devices
+/// Windows reports as connected right now are returned.
 /// </remarks>
 public sealed class BluetoothPnpBatteryProvider : IBatteryProvider
 {
@@ -54,6 +56,7 @@ public sealed class BluetoothPnpBatteryProvider : IBatteryProvider
             _lastNodeCount = nodes.Count;
         }
 
+        var connected = await _connections.GetConnectedAddressesAsync(cancellationToken);
         var now = _time.GetUtcNow();
         var result = new List<Device>();
 
@@ -73,6 +76,10 @@ public sealed class BluetoothPnpBatteryProvider : IBatteryProvider
             var address = BluetoothAddress.FromInstanceId(root.InstanceId)
                           ?? group.Select(n => BluetoothAddress.FromInstanceId(n.InstanceId)).FirstOrDefault(a => a is not null);
             var id = address is { } a ? BluetoothAddress.ToDeviceId(a) : $"pnp:{group.Key:N}";
+
+            // A disconnected device keeps showing its last level in Windows: skip it.
+            if (connected is not null && (address is not { } addr || !connected.Contains(addr)))
+                continue;
 
             var kind = root.ClassOfDevice is { } cod
                 ? DeviceKindClassifier.FromClassOfDevice(cod)

@@ -1,4 +1,5 @@
 using BatTray.App.Icons;
+using BatTray.App.Localization;
 using BatTray.Core;
 using BatTray.Core.Models;
 
@@ -25,9 +26,9 @@ public sealed record DetailPanelItem(
     {
         var details = device.Estimated && estimateDetails is not null
             ? estimateDetails
-            : $"Updated {device.LastUpdated.LocalDateTime:HH:mm} · {device.Source}";
+            : $"{L.Updated(device.LastUpdated)} · {device.Source}";
         if (hidden)
-            details += " · hidden from taskbar";
+            details += $" · {L.HiddenFromTaskbar}";
         return new DetailPanelItem(
             device.Name,
             device.Kind,

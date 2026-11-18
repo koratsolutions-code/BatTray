@@ -4,8 +4,10 @@ using System.Windows.Threading;
 using BatTray.App.Customize;
 using BatTray.App.Diagnostics;
 using BatTray.App.Icons;
+using BatTray.App.Localization;
 using BatTray.App.Panel;
 using BatTray.App.Services;
+using BatTray.App.Settings;
 using BatTray.App.Taskbar;
 using BatTray.App.Theme;
 using BatTray.App.Tray;
@@ -16,6 +18,7 @@ using BatTray.Core.Estimation;
 using BatTray.Core.Models;
 using BatTray.Core.Providers;
 using BatTray.Core.Settings;
+using BatTray.Core.Updates;
 
 namespace BatTray.App;
 
@@ -25,6 +28,7 @@ namespace BatTray.App;
 ///   --demo                 simulated devices instead of real readings
 ///   --list-devices         log one reading of every provider and exit (diagnostics)
 ///   --uninstall-cleanup    used by the uninstaller: disable start with Windows, close BatTray, exit
+///   --settings             open the settings window once BatTray has started
 /// </summary>
 public partial class App : Application
 {
@@ -56,6 +60,15 @@ public partial class App : Application
     private UsageActivityMonitor? _usage;
     private HidDongleBatteryProvider? _hidProvider;
     private DispatcherTimer? _estimateSaveTimer;
+    private readonly UpdateChecker _updateChecker = new();
+    private DispatcherTimer? _updateTimer;
+    private ReleaseInfo? _update;
+    private Version? _notifiedUpdate;
+    private static readonly TimeSpan FirstUpdateCheck = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan UpdateCheckInterval = TimeSpan.FromHours(24);
+
+    /// <summary>Container id Windows gives to built-in devices (laptop keyboard, speakers…).</summary>
+    private static readonly Guid BuiltInContainer = new("00000000-0000-0000-ffff-ffffffffffff");
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -94,12 +107,16 @@ public partial class App : Application
         Log.Info($"BatTray {typeof(App).Assembly.GetName().Version} starting (mode {mode}{(demo ? ", demo" : string.Empty)}).");
 
         _settings = _settingsStore.Load();
+        L.Apply(_settings.Language);
         AutoStart.RefreshPathIfEnabled();
-        _theme = new ThemeWatcher(Resources);
+        _theme = new ThemeWatcher(Resources, _settings.Theme);
 
-        _menuActions = new DeviceMenuActions(SetDeviceHidden, SetStartWithWindows, SetLowBatteryAlerts, SaveDiagnostics,
-            DiagnosticsReport.OpenLogFolder, About.AboutWindow.ShowSingle, About.AboutWindow.OpenUserGuide, ConfigureEstimate, MarkCharged, StopEstimate,
-            SetLevel, UseFixedLevel, CustomizeDevices, () => Shutdown());
+        _menuActions = new DeviceMenuActions(SetDeviceHidden, ShowSettings, ReportProblem, About.AboutWindow.ShowSingle,
+            About.AboutWindow.OpenUserGuide, ConfigureEstimate, MarkCharged, StopEstimate, SetLevel, UseFixedLevel,
+            SetReceiverIgnored, CustomizeDevices, OpenUpdate,
+            language => UpdateSettings(s => s with { Language = language }),
+            theme => UpdateSettings(s => s with { Theme = theme }),
+            () => Shutdown());
 
         _menuPresenter = new MenuPresenter();
 
@@ -144,10 +161,23 @@ public partial class App : Application
         _monitor.DevicesChanged += OnDevicesChanged;
         _monitor.ProviderFailed += (_, f) => Log.Error($"Provider '{f.Provider.Name}' failed.", f.Error);
 
+        // Optional daily check for a newer release on GitHub.
+        _updateTimer = new DispatcherTimer { Interval = FirstUpdateCheck };
+        _updateTimer.Tick += async (_, _) =>
+        {
+            _updateTimer.Interval = UpdateCheckInterval;
+            await CheckForUpdateAsync(manual: false);
+        };
+        if (!demo)
+            _updateTimer.Start();
+
         RefreshUi();
         _watcher.Start();
         _buttonsProbe.Start();
         _monitor.Start();
+
+        if (HasFlag(e.Args, "--settings"))
+            _ = Dispatcher.BeginInvoke(ShowSettings, DispatcherPriority.ApplicationIdle);
     }
 
     private static IReadOnlyList<IBatteryProvider> CreateProviders(bool demo, BatteryEstimator? estimator)
@@ -190,18 +220,11 @@ public partial class App : Application
         {
             Log.Info($"Low battery alert: {device.Name} at {device.BatteryPercent}%{(device.Estimated ? " (estimated)" : string.Empty)}.");
             _tray.Notify(
-                device.Estimated ? $"{device.Name}: about {device.BatteryPercent}% battery (estimated)" : $"{device.Name}: {device.BatteryPercent}% battery",
-                "Charge it or replace the batteries soon.");
+                device.Estimated ? L.LowBatteryEstimatedTitle(device.Name, device.BatteryPercent) : L.LowBatteryTitle(device.Name, device.BatteryPercent),
+                L.LowBatteryMessage);
         }
     }
 
-    private void SetLowBatteryAlerts(bool enabled)
-    {
-        _settings = _settings with { LowBatteryAlerts = enabled };
-        SaveSettings();
-        Log.Info($"Low battery alerts {(enabled ? "enabled" : "disabled")}.");
-        RefreshUi();
-    }
 
     /// <summary>Pushes the current devices and settings to the widget, the tray icon and both menus. UI thread only.</summary>
     private void RefreshUi()
@@ -243,8 +266,18 @@ public partial class App : Application
 
     private void FillMenu(ContextMenu menu)
     {
-        if (_menuActions is not null)
-            DeviceMenu.Fill(menu, _devices, _settings, AutoStart.IsEnabled(), EstimateCandidates(), _menuActions);
+        if (_menuActions is null)
+            return;
+        var candidates = EstimateCandidates();
+        var model = new DeviceMenuModel(
+            _devices,
+            candidates.Where(c => !_settings.IsIgnored(c.Id) || c.Estimate is not null).ToList(),
+            candidates.Where(c => _settings.IsIgnored(c.Id) && c.Estimate is null).ToList(),
+            _settings,
+            _update,
+            L.Spanish,
+            !(_theme?.IsAppLight ?? true));
+        DeviceMenu.Fill(menu, model, _menuActions);
     }
 
     // ---------- Usage-based estimates ----------
@@ -257,6 +290,9 @@ public partial class App : Application
         var candidates = new Dictionary<string, EstimateCandidate>(StringComparer.OrdinalIgnoreCase);
         foreach (var receiver in _hidProvider?.ReceiversWithoutProtocol ?? [])
         {
+            // Built-in devices (the laptop keyboard…) are wired: never offer them.
+            if (receiver.ContainerId is not { } container || container == BuiltInContainer)
+                continue;
             var estimate = _estimator.Get(receiver.Id);
             candidates[receiver.Id] = new EstimateCandidate(receiver.Id,
                 estimate?.Name ?? _usage?.FindAudioName(receiver.Id) ?? receiver.DisplayName, receiver.InferKind(), estimate);
@@ -346,11 +382,10 @@ public partial class App : Application
         var now = DateTimeOffset.UtcNow;
         var since = now - e.ChargedAt;
         var used = BatteryEstimator.UsedHoursAt(e, now);
-        var setAgo = since.TotalDays >= 1 ? $"{(int)since.TotalDays} d" : since.TotalHours >= 1 ? $"{(int)since.TotalHours} h" : $"{(int)since.TotalMinutes} min";
-        if (e.IsFixed)
-            return $"Set manually · {setAgo} ago";
         var ago = since.TotalDays >= 1 ? $"{(int)since.TotalDays} d" : since.TotalHours >= 1 ? $"{(int)since.TotalHours} h" : $"{(int)since.TotalMinutes} min";
-        return $"Estimated from usage · {(used < 1 ? $"{used * 60:0} min" : $"{used:0.#} h")} of {e.RatedHours:0.#} h used · set {ago} ago";
+        if (e.IsFixed)
+            return L.SetManuallyAgo(ago);
+        return L.EstimatedDetails(used < 1 ? $"{used * 60:0} min" : $"{used:0.#} h", e.RatedHours, ago);
     }
 
     private void SaveEstimates(bool onlyIfDirty)
@@ -375,10 +410,118 @@ public partial class App : Application
         RefreshUi();
     }
 
+    private void SetReceiverIgnored(string receiverId, bool ignored)
+    {
+        _settings = _settings.WithIgnored(receiverId, ignored);
+        SaveSettings();
+        Log.Info($"Receiver {receiverId} {(ignored ? "hidden from" : "shown again in")} the menu.");
+        RefreshUi();
+    }
+
+    // ---------- Settings ----------
+
+    private void ShowSettings() =>
+        SettingsWindow.ShowSingle(new SettingsContext(
+            () => _settings,
+            UpdateSettings,
+            AutoStart.IsEnabled,
+            SetStartWithWindows,
+            () => CheckForUpdateAsync(manual: true),
+            OpenUpdate,
+            SaveDiagnostics,
+            DiagnosticsReport.OpenLogFolder,
+            About.AboutWindow.DisplayVersion));
+
+    /// <summary>Applies a change made in the settings window, saves it and refreshes everything it affects.</summary>
+    private void UpdateSettings(Func<AppSettings, AppSettings> change)
+    {
+        var before = _settings;
+        _settings = change(_settings).Normalize();
+        SaveSettings();
+
+        if (_settings.Language != before.Language)
+            L.Apply(_settings.Language);
+        if (_settings.Theme != before.Theme)
+            _theme?.SetMode(_settings.Theme);
+        if (_settings.CheckForUpdates && !before.CheckForUpdates)
+            _ = CheckForUpdateAsync(manual: false);
+        if (!_settings.CheckForUpdates)
+            _update = null;
+
+        Log.Info("Settings changed.");
+        RefreshUi();
+    }
+
     private void SetStartWithWindows(bool enabled)
     {
         AutoStart.SetEnabled(enabled);
         RefreshUi();
+    }
+
+    // ---------- Updates ----------
+
+    /// <summary>
+    /// Asks GitHub for a newer release. Automatic checks respect the setting and notify once per version;
+    /// a manual check (from Settings) always runs and throws when GitHub cannot be reached.
+    /// </summary>
+    private async Task<ReleaseInfo?> CheckForUpdateAsync(bool manual)
+    {
+        if (!manual && !_settings.CheckForUpdates)
+            return null;
+        var current = Version.Parse(About.AboutWindow.DisplayVersion);
+        try
+        {
+            var release = await _updateChecker.FindNewerAsync(current);
+            _update = release;
+            Log.Info(release is null ? "Update check: up to date." : $"Update check: {release.Tag} available.");
+            if (release is not null && !manual && release.Version != _notifiedUpdate)
+            {
+                _notifiedUpdate = release.Version;
+                _tray?.Notify(L.UpdateTitle(release.Version.ToString(3)), L.UpdateMessage);
+            }
+            RefreshUi();
+            return release;
+        }
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or TaskCanceledException or InvalidOperationException)
+        {
+            Log.Info($"Update check failed: {ex.Message}");
+            if (manual)
+                throw;
+            return null;
+        }
+    }
+
+    private static void OpenUpdate(ReleaseInfo release) => OpenUrl(release.PageUrl);
+
+    // ---------- Report a problem ----------
+
+    /// <summary>Saves a diagnostics report, shows it in Explorer and opens a pre-filled GitHub issue.</summary>
+    private void ReportProblem()
+    {
+        var answer = MessageBox.Show(L.ReportIntro + "\n\n" + L.ReportPrivacy, L.ReportTitle,
+            MessageBoxButton.OKCancel, MessageBoxImage.Information);
+        if (answer != MessageBoxResult.OK)
+            return;
+
+        SaveDiagnostics();
+        var title = Uri.EscapeDataString("Problem: ");
+        var body = Uri.EscapeDataString(
+            "**What happened?**\n\n\n**Which device (brand and model)?**\n\n\n" +
+            $"---\nBatTray {About.AboutWindow.DisplayVersion} · Windows {Environment.OSVersion.Version}\n" +
+            "_Please attach the diagnostics report BatTray saved (drag the file here)._");
+        OpenUrl($"{About.AboutWindow.RepositoryUrl}/issues/new?title={title}&body={body}");
+    }
+
+    private static void OpenUrl(string url)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Could not open {url}.", ex);
+        }
     }
 
     private void SaveDiagnostics()
@@ -496,6 +639,7 @@ public partial class App : Application
     {
         _monitor?.Dispose();
         _estimateSaveTimer?.Stop();
+        _updateTimer?.Stop();
         _usage?.Dispose();
         SaveEstimates(onlyIfDirty: true);
         foreach (var provider in _providers)

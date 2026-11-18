@@ -21,9 +21,11 @@ en la barra de tareas de Windows: el icono del dispositivo junto a su porcentaje
 - **Estimación por tiempo de uso** para dispositivos que nunca envían su batería (muchos auriculares y ratones
   económicos): BatTray cuenta cuánto los usas y muestra una estimación como `~62%`.
 - **Alertas de batería baja**: una notificación de Windows por descarga cuando un dispositivo llega al nivel crítico.
-- **Icono y menú en la bandeja** (clic derecho): elegir qué dispositivos mostrar, iniciar con Windows,
-  activar/desactivar alertas, informe de diagnóstico, carpeta de logs.
-- Temas claro y oscuro, cualquier escalado DPI, barra que se oculta sola, apps a pantalla completa y reinicios del Explorador.
+- **Icono y menú en la bandeja** (clic derecho), agrupados en **Bluetooth**, **2,4 GHz (receptor USB)** y **Mandos**.
+- **Español e inglés**: sigue el idioma de Windows, o elige uno en Ajustes.
+- **Tema claro y oscuro** en menús y ventanas (sigue a Windows o el que elijas); cualquier escalado DPI, barra que
+  se oculta sola, apps a pantalla completa y reinicios del Explorador.
+- **Aviso de nueva versión** cuando se publica una (opcional) e **Informar de un problema** con un clic.
 
 ## Instalación
 **[Descarga el último instalador](https://github.com/koratsolutions-code/BatTray/releases/latest)** y ejecuta
@@ -67,42 +69,64 @@ su propio protocolo. BatTray usa un catálogo de **protocolos enchufables** (`IH
 
 **Seguridad:** solo se envían consultas de lectura, y solo a receptores que un protocolo reconoce con certeza.
 Nunca se usan comandos que cambien ajustes o el modo del dongle. A los receptores no reconocidos nunca se les
-escribe nada; usa **Save diagnostics report…** para registrar su estructura
-HID y poder añadirlos.
+escribe nada; usa **Informar de un problema…** (o *Ajustes → Guardar informe de diagnóstico…*) para registrar
+su estructura HID y poder añadirlos.
+
+**Privacidad:** la única conexión que hace BatTray es la comprobación diaria opcional de actualizaciones: una
+consulta anónima a GitHub del número de la última versión (se desactiva en Ajustes). No se envía nada sobre ti ni
+tus dispositivos.
 
 > Los protocolos de Razer, SteelSeries, Corsair, HyperX, PlayStation, Aurora, MonsGeek/Akko, Keychron, Rapoo,
 > Ajazz, Darmoshark y MCHOSE están implementados a partir de
 > documentación pública y drivers de código abierto y cubiertos con tests, pero aún no se han verificado con hardware real.
 
-## Ajustes
-Todo se configura desde el menú de la bandeja (clic derecho en el icono de BatTray o en el widget):
+## Menú
+Haz clic derecho en el widget o en el icono de BatTray del área de notificación. Los dispositivos se agrupan por
+conexión: **Bluetooth**, **2,4 GHz (receptor USB)** y **Mandos**.
 - **Cada dispositivo** aparece con su nivel: desmárcalo para ocultarlo de la barra.
-- **Start with Windows**: iniciar con Windows.
-- **Low battery alerts**: activar o desactivar las alertas.
-- **Save diagnostics report…** y **Open log folder**: útiles para pedir soporte.
-- **Customize devices…**: cambia el nombre de cualquier dispositivo y elige su icono del set incluido (ratón,
-  teclado, auricular, earbuds, altavoz, micrófono, mando, trackball, lápiz, teléfono, tablet, reloj, batería,
-  Bluetooth) o sube tu propia imagen (PNG, JPG, BMP, GIF o ICO; se reduce a 64×64 y se guarda en la carpeta de
-  ajustes de BatTray).
-- **About BatTray**: versión, web y licencia.
+- **Los receptores USB que no envían batería** aparecen en *2,4 GHz* con un submenú (ver abajo), o puedes elegir
+  **Ocultar este receptor**; por ejemplo, el dongle de un teclado que usas por Bluetooth. Los ocultos se pueden
+  volver a mostrar desde *Receptores ocultos*. Los dispositivos internos con cable (como el teclado de un portátil)
+  nunca se listan.
+- **Personalizar dispositivos…**: cambia el nombre de cualquier dispositivo y elige su icono del set incluido
+  (ratón, teclado, auricular, auriculares de botón, altavoz, micrófono, mando, trackball, lápiz, teléfono, tablet,
+  reloj, batería, Bluetooth) o sube tu propia imagen (PNG, JPG, BMP, GIF o ICO; se reduce a 64×64 y se guarda en
+  la carpeta de ajustes de BatTray).
+- **Ajustes…**: ver abajo.
+- **Informar de un problema…**: guarda un informe de diagnóstico, lo muestra en el Explorador y abre una incidencia
+  de GitHub ya rellenada.
+- **Guía de usuario** y **Acerca de BatTray**.
+
+## Ajustes
+| Ajuste | Por defecto |
+|---|---|
+| Nivel bajo (ámbar) / nivel crítico (rojo) | por debajo del 30 % / del 15 % |
+| Avisarme cuando un dispositivo llegue al nivel crítico | activado |
+| Idioma | igual que Windows (español o inglés) |
+| Menús y ventanas (tema) | igual que Windows (claro u oscuro) |
+| Iniciar con Windows | activado al instalar |
+| Mostrar en la barra de cada monitor | activado |
+| Buscar nuevas versiones una vez al día | activado |
+
+Los ajustes se guardan en `%AppData%\KoratSolutions\BatTray\settings.json`; los registros en
+`%LocalAppData%\KoratSolutions\BatTray\logs`.
 
 ### Dispositivos sin datos de batería
-Algunos dispositivos no envían su nivel de batería al PC, así que nada puede leerlo. Aparecen en el menú en
-**Devices without battery data**, con dos opciones:
+Algunos dispositivos no envían su nivel de batería al PC, así que nada puede leerlo. Sus receptores aparecen en
+el menú dentro de **2,4 GHz**, marcados como *sin datos de batería*, con dos opciones:
 
-- **Set level manually**: elige 100 / 75 / 50 / 25 % u *Other…*. El nivel se queda fijo hasta que lo cambies.
-- **Estimate from usage**: indica la autonomía (horas de uso con una carga completa, según el manual) y la carga
+- **Fijar nivel manualmente**: elige 100 / 75 / 50 / 25 % u *Otro…*. El nivel se queda fijo hasta que lo cambies.
+- **Estimar por tiempo de uso**: indica la autonomía (horas de uso con una carga completa, según el manual) y la carga
   actual. A partir de ahí:
   - Un auricular cuenta como en uso mientras suena audio por él y durante los 10 minutos siguientes.
   - Un ratón o teclado cuenta como en uso mientras lo usas y durante los 10 minutos siguientes.
 
-Ambos se muestran con `~` (por ejemplo `~62%`). El submenú de cada dispositivo tiene **Set current level**,
-**I just charged it**, el cambio entre los dos modos y **Remove**.
+Ambos se muestran con `~` (por ejemplo `~62%`). El submenú de cada dispositivo tiene **Ajustar nivel actual**,
+**Lo acabo de cargar**, el cambio entre los dos modos (**Estimar por tiempo de uso** / **Nivel fijo**) y **Quitar**.
 
 La estimación es una aproximación: la batería real depende del volumen, las luces y la edad de la batería.
 Las estimaciones se guardan en `%AppData%\KoratSolutions\BatTray\estimates.json`.
 
-El nivel se pone ámbar por debajo del 30% y rojo por debajo del 15%, que es cuando salta la alerta.
 
 ## Licencia
 [MIT](LICENSE) © 2026 Korat Solutions.

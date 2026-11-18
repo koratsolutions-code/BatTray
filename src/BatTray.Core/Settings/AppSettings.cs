@@ -24,6 +24,30 @@ public sealed record AppSettings
     /// <summary>Show a Windows notification when a device reaches the critical level.</summary>
     public bool LowBatteryAlerts { get; init; } = true;
 
+    /// <summary>User interface language: <c>auto</c> (follow Windows), <c>en</c> or <c>es</c>.</summary>
+    public string Language { get; init; } = "auto";
+
+    /// <summary>Menus and windows: <c>auto</c> (follow Windows), <c>light</c> or <c>dark</c>.</summary>
+    public string Theme { get; init; } = "auto";
+
+    /// <summary>Ask GitHub once a day whether a newer BatTray release exists.</summary>
+    public bool CheckForUpdates { get; init; } = true;
+
+    /// <summary>USB receivers the user chose not to list (e.g. a dongle whose device is used over Bluetooth).</summary>
+    public IReadOnlyList<string> IgnoredReceiverIds { get; init; } = [];
+
+    public static IReadOnlyList<string> Languages { get; } = ["auto", "en", "es"];
+    public static IReadOnlyList<string> Themes { get; } = ["auto", "light", "dark"];
+
+    public bool IsIgnored(string receiverId) =>
+        IgnoredReceiverIds.Contains(receiverId, StringComparer.OrdinalIgnoreCase);
+
+    public AppSettings WithIgnored(string receiverId, bool ignored)
+    {
+        var others = IgnoredReceiverIds.Where(id => !string.Equals(id, receiverId, StringComparison.OrdinalIgnoreCase));
+        return this with { IgnoredReceiverIds = ignored ? [.. others, receiverId] : [.. others] };
+    }
+
     /// <summary>Custom names and icons, by device id.</summary>
     public IReadOnlyDictionary<string, DeviceCustomization> Customizations { get; init; } =
         new Dictionary<string, DeviceCustomization>(StringComparer.OrdinalIgnoreCase);
@@ -76,6 +100,10 @@ public sealed record AppSettings
                 .GroupBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.Last().Value, StringComparer.OrdinalIgnoreCase),
             CriticalThreshold = critical,
+            Language = Languages.Contains(Language?.ToLowerInvariant()) ? Language!.ToLowerInvariant() : "auto",
+            Theme = Themes.Contains(Theme?.ToLowerInvariant()) ? Theme!.ToLowerInvariant() : "auto",
+            IgnoredReceiverIds = (IgnoredReceiverIds ?? []).Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
         };
     }
 }

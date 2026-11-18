@@ -23,6 +23,7 @@
     <Resource Include="Assets\BatTray.ico" />
     <Resource Include="Assets\BatTray-512.png" />
     <Resource Include="Assets\KoratLogo.png" />
+    <Resource Include="Assets\KoratLogo-dark.png" />
     <Content Include="..\..\LICENSE" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\docs\UserGuide.html" Link="UserGuide.html" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

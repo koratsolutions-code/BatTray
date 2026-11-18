@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using BatTray.App.Icons;
+using BatTray.App.Localization;
 using BatTray.Core;
 using BatTray.Core.Models;
 
@@ -67,7 +68,7 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
     public BatteryLevel Level => BatteryLevelPalette.Classify(_percent, _lowThreshold, _criticalThreshold);
 
     public string ToolTip =>
-        $"{Name}: {PercentText}{(IsCharging ? " (charging)" : string.Empty)}{(IsEstimated ? " (estimated from usage)" : string.Empty)}\nLast reading: {_lastUpdated.LocalDateTime:HH:mm:ss}" +
+        $"{Name}: {PercentText}{(IsCharging ? L.ChargingSuffix : string.Empty)}{(IsEstimated ? L.EstimatedSuffix : string.Empty)}\n{L.LastReading(_lastUpdated)}" +
         (string.IsNullOrEmpty(_source) ? string.Empty : $" ({_source})");
 
     public void Update(Device device, int lowThreshold, int criticalThreshold)

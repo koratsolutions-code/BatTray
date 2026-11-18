@@ -20,11 +20,30 @@
     <Grid Background="#01000000">
 
         <ItemsControl ItemsSource="{Binding Devices}" VerticalAlignment="Center" Margin="2,0">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+            <ItemsControl.Style>
+                <Style TargetType="ItemsControl">
+                    <Setter Property="ItemsPanel">
+                        <Setter.Value>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <!-- Two rows: items flow top to bottom, then into the next column. -->
+                        <DataTrigger Binding="{Binding TwoRows}" Value="True">
+                            <Setter Property="ItemsPanel">
+                                <Setter.Value>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Vertical"
+                                                   ItemHeight="{Binding DataContext.RowHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                    </ItemsPanelTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ItemsControl.Style>
 
             <ItemsControl.ItemContainerStyle>
                 <Style TargetType="ContentPresenter">
@@ -35,25 +54,34 @@
 
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:DeviceViewModel}">
-                    <StackPanel Orientation="Horizontal" Margin="5,0" Background="#01000000"
+                    <StackPanel Orientation="Horizontal" Background="#01000000" VerticalAlignment="Center"
+                                Margin="{Binding DataContext.ItemMargin, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                 ToolTip="{Binding ToolTip}">
                         <Image x:Name="IconImage" Width="16" Height="16" VerticalAlignment="Center" Visibility="Collapsed"
-                               Source="{Binding Icon.Image}" RenderOptions.BitmapScalingMode="HighQuality" />
+                               Source="{Binding Icon.Image}" RenderOptions.BitmapScalingMode="HighQuality">
+                            <Image.LayoutTransform>
+                                <ScaleTransform ScaleX="{Binding DataContext.IconScale, RelativeSource={RelativeSource AncestorType=ItemsControl}}" ScaleY="{Binding DataContext.IconScale, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                            </Image.LayoutTransform>
+                        </Image>
                         <Path x:Name="Icon"
                               Width="16" Height="16" Stretch="None"
                               VerticalAlignment="Center"
                               Data="{Binding Icon.Geometry}"
                               Stroke="{DynamicResource WidgetForegroundBrush}"
                               StrokeThickness="1.4"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round">
+                            <Path.LayoutTransform>
+                                <ScaleTransform ScaleX="{Binding DataContext.IconScale, RelativeSource={RelativeSource AncestorType=ItemsControl}}" ScaleY="{Binding DataContext.IconScale, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                            </Path.LayoutTransform>
+                        </Path>
                         <TextBlock x:Name="Percent"
-                                   Margin="5,0,0,0"
+                                   Margin="{Binding DataContext.TextMargin, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                    VerticalAlignment="Center"
                                    FontFamily="Segoe UI Variable Text, Segoe UI"
-                                   FontSize="12"
+                                   FontSize="{Binding DataContext.FontSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                    Text="{Binding PercentText}"
                                    Foreground="{DynamicResource Level.Good}" />
-                        <Path Width="10" Height="16" Margin="3,0,0,0" Stretch="Uniform"
+                        <Path Width="8" Height="13" Margin="2,0,0,0" Stretch="Uniform"
                               VerticalAlignment="Center"
                               Data="{StaticResource Icon.Charging}"
                               Fill="{DynamicResource Level.Good}"

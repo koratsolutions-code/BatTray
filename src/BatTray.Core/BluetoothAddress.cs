@@ -29,6 +29,23 @@ public static partial class BluetoothAddress
             : null;
     }
 
+    /// <summary>
+    /// Extracts the remote address from a Bluetooth association-endpoint id such as
+    /// <c>Bluetooth#Bluetooth3c:21:9c:aa:bb:cc-d1:04:c6:ae:cb:01</c> (local adapter, then the device).
+    /// </summary>
+    public static ulong? FromEndpointId(string? endpointId)
+    {
+        if (string.IsNullOrEmpty(endpointId))
+            return null;
+        var match = AddressInEndpointId().Match(endpointId);
+        return match.Success
+            ? ulong.Parse(match.Groups["addr"].Value.Replace(":", string.Empty), NumberStyles.HexNumber, CultureInfo.InvariantCulture)
+            : null;
+    }
+
+    [GeneratedRegex(@"-(?<addr>[0-9A-F]{2}(?::[0-9A-F]{2}){5})$", RegexOptions.IgnoreCase)]
+    private static partial Regex AddressInEndpointId();
+
     // DEV_<addr> (device node) or &<addr>_ / &<addr> at the end (service nodes). Rightmost match wins.
     [GeneratedRegex(@"(?:DEV_|&)(?<addr>[0-9A-F]{12})(?=_|\\|$)", RegexOptions.IgnoreCase | RegexOptions.RightToLeft)]
     private static partial Regex AddressInInstanceId();

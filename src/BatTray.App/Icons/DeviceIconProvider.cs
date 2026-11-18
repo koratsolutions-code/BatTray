@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using BatTray.App.Diagnostics;
+using BatTray.App.Localization;
 using BatTray.Core.Models;
 using BatTray.Core.Settings;
 
@@ -39,7 +40,7 @@ public static class DeviceIconProvider
         ("bluetooth", "Bluetooth"),
     ];
 
-    public static string FileFilter => "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico";
+    public static string FileFilter => $"{L.Images}|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico";
 
     public static string IconsFolder { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KoratSolutions", "BatTray", "icons");
@@ -89,9 +90,9 @@ public static class DeviceIconProvider
     {
         var info = new FileInfo(sourcePath);
         if (!info.Exists)
-            throw new InvalidDataException("The file does not exist.");
+            throw new InvalidDataException(L.ErrorImageMissing);
         if (info.Length > MaxUploadBytes)
-            throw new InvalidDataException("The image is larger than 10 MB.");
+            throw new InvalidDataException(L.ErrorImageTooLarge);
 
         BitmapSource source;
         try
@@ -109,7 +110,7 @@ public static class DeviceIconProvider
         catch (Exception ex) when (ex is NotSupportedException or IOException or ArgumentException or InvalidOperationException
                                    or FileFormatException or UnauthorizedAccessException)
         {
-            throw new InvalidDataException("This file is not an image BatTray can read.", ex);
+            throw new InvalidDataException(L.ErrorImageUnreadable, ex);
         }
 
         // Scale to fit a square canvas, keeping the aspect ratio.

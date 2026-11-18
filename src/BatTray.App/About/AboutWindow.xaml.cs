@@ -3,6 +3,8 @@ using System.IO;
 using System.Reflection;
 using System.Windows;
 using BatTray.App.Diagnostics;
+using BatTray.App.Localization;
+using BatTray.App.Theme;
 
 namespace BatTray.App.About;
 
@@ -16,7 +18,8 @@ public partial class AboutWindow : Window
     private AboutWindow()
     {
         InitializeComponent();
-        VersionText.Text = $"Version {DisplayVersion}";
+        ThemeWatcher.ApplyTitleBar(this);
+        VersionText.Text = L.Version(DisplayVersion);
         CopyrightText.Text = $"© {Math.Max(2026, DateTime.Now.Year)} Korat Solutions";
         Closed += (_, _) => _open = null;
     }

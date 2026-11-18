@@ -20,9 +20,11 @@ Windows taskbar: the device icon next to its percentage.
 - **Low battery alerts**: one Windows notification per discharge when a device drops to the critical level.
 - **Usage-based estimates** for devices that never report their battery (many budget headsets and mice):
   BatTray counts how long you use them and shows an estimate such as `~62%`.
-- **Tray icon and menu** (right-click): choose which devices to show, start with Windows, alerts on/off,
-  diagnostics report, log folder.
-- Light and dark taskbar themes, any DPI scaling, auto-hide taskbar, full-screen apps, Explorer restarts.
+- **Tray icon and menu** (right-click), grouped into **Bluetooth**, **2.4 GHz (USB receiver)** and **Controllers**.
+- **English and Spanish**: follows the Windows language, or pick one in Settings.
+- **Light and dark theme** for menus and windows (follows Windows or your choice); any DPI scaling, auto-hide
+  taskbar, full-screen apps, Explorer restarts.
+- **Update notice** when a new version is published (optional), and **Report a problem** in one click.
 
 ## Install
 **[Download the latest installer](https://github.com/koratsolutions-code/BatTray/releases/latest)** and run
@@ -65,27 +67,47 @@ BatTray uses a catalogue of **pluggable protocols** (`IHidBatteryProtocol`):
 
 **Safety:** only read-only queries are sent, and only to receivers a protocol positively recognises.
 Commands that change settings or switch dongle modes are never used. Unrecognised receivers are never
-written to — use **Save diagnostics report…** to capture their HID
-layout so support can be added.
+written to — use **Report a problem…** (or *Settings → Save diagnostics report…*) to capture their HID layout so
+support can be added.
+
+**Privacy:** the only network request BatTray makes is the optional daily update check: an anonymous request to
+GitHub for the latest version number (turn it off in Settings). Nothing about you or your devices is sent.
 
 > The Razer, SteelSeries, Corsair, HyperX, PlayStation, Aurora, MonsGeek/Akko, Keychron, Rapoo, Ajazz,
 > Darmoshark and MCHOSE protocols are implemented from public
 > documentation and open-source drivers and covered by unit tests, but not yet verified on real hardware.
 
-## Settings
-Everything is set from the tray menu (right-click the BatTray icon or the widget):
+## Menu
+Right-click the widget or the BatTray icon in the notification area. Devices are grouped by connection:
+**Bluetooth**, **2.4 GHz (USB receiver)** and **Controllers**.
 - **Each device** is listed with its level: untick it to hide it from the taskbar.
-- **Start with Windows**.
-- **Low battery alerts**: on or off.
-- **Save diagnostics report…** and **Open log folder**: useful when asking for support.
+- **USB receivers that send no battery data** are listed under *2.4 GHz* with a submenu (see below), or
+  **Hide this receiver** — for example a dongle whose keyboard you use over Bluetooth. Hidden receivers can be
+  shown again from *Hidden receivers*. Built-in, wired devices (like a laptop keyboard) are never listed.
 - **Customize devices…**: rename any device and pick its icon from the built-in set (mouse, keyboard, headset,
   earbuds, speaker, microphone, gamepad, trackball, pen, phone, tablet, watch, battery, Bluetooth) or upload your
   own image (PNG, JPG, BMP, GIF or ICO; it is resized to 64×64 and stored in BatTray's settings folder).
-- **About BatTray**: version, website and license.
+- **Settings…**: see below.
+- **Report a problem…**: saves a diagnostics report, shows it in File Explorer and opens a pre-filled GitHub issue.
+- **User guide** and **About BatTray**.
+
+## Settings
+| Setting | Default |
+|---|---|
+| Low level (amber) / critical level (red) | below 30 % / below 15 % |
+| Notify me when a device reaches the critical level | on |
+| Language | same as Windows (English or Spanish) |
+| Menus and windows (theme) | same as Windows (light or dark) |
+| Start with Windows | on after installing |
+| Show on the taskbar of every monitor | on |
+| Check for new versions once a day | on |
+
+Settings are stored in `%AppData%\KoratSolutions\BatTray\settings.json`; logs in
+`%LocalAppData%\KoratSolutions\BatTray\logs`.
 
 ### Devices without battery data
-Some devices do not send their battery level to the PC at all, so nothing can read it. They are listed under
-**Devices without battery data** in the menu, with two options:
+Some devices do not send their battery level to the PC at all, so nothing can read it. Their receivers appear
+in the menu under **2.4 GHz** marked *no battery data*, with two options:
 
 - **Set level manually**: pick 100 / 75 / 50 / 25 % or *Other…*. The level stays fixed until you change it.
 - **Estimate from usage**: enter the battery life (hours of use on a full charge, from the manual) and the
@@ -99,7 +121,6 @@ Both are shown with a `~` (for example `~62%`). Each device's submenu has **Set 
 An estimate is an approximation: the real battery depends on volume, lighting and the battery's age.
 Estimates are stored in `%AppData%\KoratSolutions\BatTray\estimates.json`.
 
-The level turns amber below 30% and red below 15%, which is also when the alert is shown.
 
 ## License
 [MIT](LICENSE) © 2026 Korat Solutions.

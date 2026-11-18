@@ -6,6 +6,8 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using BatTray.App.Icons;
+using BatTray.App.Localization;
+using BatTray.App.Theme;
 using BatTray.Core.Models;
 using BatTray.Core.Settings;
 using Microsoft.Win32;
@@ -15,7 +17,6 @@ namespace BatTray.App.Customize;
 /// <summary>Rename devices and pick their icon from the built-in set or an uploaded image.</summary>
 public partial class CustomizeWindow : Window
 {
-    private static readonly Brush IconBrush = new SolidColorBrush(Color.FromRgb(0x16, 0x28, 0x4C));
     private static CustomizeWindow? _open;
 
     private readonly Func<string, DeviceCustomization?> _get;
@@ -28,6 +29,7 @@ public partial class CustomizeWindow : Window
     private CustomizeWindow(IReadOnlyList<Device> devices, Func<string, DeviceCustomization?> get, Action<string, DeviceCustomization?> save)
     {
         InitializeComponent();
+        ThemeWatcher.ApplyTitleBar(this);
         _get = get;
         _save = save;
         _entries = devices.Select(d => new Entry(d.Id, d.Name, d.Kind)).ToList();
@@ -59,7 +61,7 @@ public partial class CustomizeWindow : Window
         var customization = _get(_current.Id);
         _loading = true;
         NameBox.Text = customization?.Name ?? _current.OriginalName;
-        OriginalName.Text = $"Original name: {_current.OriginalName}";
+        OriginalName.Text = L.OriginalName(_current.OriginalName);
         _pendingIcon = customization?.Icon;
         BuildIconTiles();
         _loading = false;
@@ -73,11 +75,11 @@ public partial class CustomizeWindow : Window
             return;
         IconPanel.Children.Clear();
 
-        AddTile(null, $"Default ({DeviceIconProvider.DefaultKey(_current.Kind)})", DeviceIconProvider.Resolve(_current.Kind, null), isDefault: true);
-        foreach (var (key, label) in DeviceIconProvider.BuiltIn)
-            AddTile(key, label, DeviceIconProvider.Resolve(_current.Kind, key));
+        AddTile(null, L.DefaultIcon(L.IconLabel(DeviceIconProvider.DefaultKey(_current.Kind))), DeviceIconProvider.Resolve(_current.Kind, null), isDefault: true);
+        foreach (var (key, _) in DeviceIconProvider.BuiltIn)
+            AddTile(key, L.IconLabel(key), DeviceIconProvider.Resolve(_current.Kind, key));
         if (_pendingIcon?.StartsWith(DeviceCustomization.FilePrefix, StringComparison.Ordinal) == true)
-            AddTile(_pendingIcon, "Your image", DeviceIconProvider.Resolve(_current.Kind, _pendingIcon));
+            AddTile(_pendingIcon, L.YourImage, DeviceIconProvider.Resolve(_current.Kind, _pendingIcon));
     }
 
     private void AddTile(string? value, string label, DeviceIcon icon, bool isDefault = false)
@@ -88,7 +90,9 @@ public partial class CustomizeWindow : Window
             // Mark the "default" tile with a small dot under the icon.
             var stack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center };
             stack.Children.Add(fe);
-            stack.Children.Add(new Ellipse { Width = 4, Height = 4, Fill = new SolidColorBrush(Color.FromRgb(0x2E, 0x6F, 0xD0)), Margin = new Thickness(0, 3, 0, 0) });
+            var dot = new Ellipse { Width = 4, Height = 4, Margin = new Thickness(0, 3, 0, 0) };
+            dot.SetResourceReference(Shape.FillProperty, "App.Accent");
+            stack.Children.Add(dot);
             content = stack;
         }
 
@@ -114,7 +118,7 @@ public partial class CustomizeWindow : Window
     {
         if (_current is null)
             return;
-        var dialog = new OpenFileDialog { Title = "Choose an icon image", Filter = DeviceIconProvider.FileFilter, CheckFileExists = true };
+        var dialog = new OpenFileDialog { Title = L.ChooseImage, Filter = DeviceIconProvider.FileFilter, CheckFileExists = true };
         if (dialog.ShowDialog(this) != true)
             return;
 
@@ -132,7 +136,7 @@ public partial class CustomizeWindow : Window
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            ShowError($"Could not save the image: {ex.Message}");
+            ShowError(L.ErrorImageSave(ex.Message));
         }
     }
 
@@ -177,19 +181,25 @@ public partial class CustomizeWindow : Window
         {
             Width = size,
             Height = size,
-            Child = new Path
-            {
-                Data = icon.Geometry,
+            Child = ThemedPath(icon.Geometry),
+        };
+    }
+
+    private static Path ThemedPath(Geometry? geometry)
+    {
+        var path = new Path
+        {
+                Data = geometry,
                 Width = 16,
                 Height = 16,
                 Stretch = Stretch.None,
-                Stroke = IconBrush,
                 StrokeThickness = 1.4,
                 StrokeStartLineCap = PenLineCap.Round,
                 StrokeEndLineCap = PenLineCap.Round,
                 StrokeLineJoin = PenLineJoin.Round,
-            },
         };
+        path.SetResourceReference(Shape.StrokeProperty, "App.Text");
+        return path;
     }
 
     /// <summary>One device in the list.</summary>

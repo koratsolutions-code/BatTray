@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Windows;
+using BatTray.App.Localization;
+using BatTray.App.Theme;
 
 namespace BatTray.App.Usage;
 
@@ -9,6 +11,7 @@ public partial class EstimateDialog : Window
     public EstimateDialog(string name, double ratedHours, int currentPercent)
     {
         InitializeComponent();
+        ThemeWatcher.ApplyTitleBar(this);
         NameBox.Text = name;
         HoursBox.Text = ratedHours.ToString("0.#", CultureInfo.CurrentCulture);
         PercentBox.Text = currentPercent.ToString(CultureInfo.CurrentCulture);
@@ -31,17 +34,17 @@ public partial class EstimateDialog : Window
         var name = NameBox.Text.Trim();
         if (name.Length == 0)
         {
-            ShowError("Enter a name.");
+            ShowError(L.ErrorName);
             return;
         }
         if (!double.TryParse(HoursBox.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out var hours) || hours is < 0.5 or > 10000)
         {
-            ShowError("Battery life must be a number of hours between 0.5 and 10000.");
+            ShowError(L.ErrorHours);
             return;
         }
         if (!int.TryParse(PercentBox.Text.Trim().TrimEnd('%'), NumberStyles.Integer, CultureInfo.CurrentCulture, out var percent) || percent is < 0 or > 100)
         {
-            ShowError("Current charge must be a whole number from 0 to 100.");
+            ShowError(L.ErrorPercent);
             return;
         }
 

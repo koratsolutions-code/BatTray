@@ -27,3 +27,18 @@ public class BluetoothAddressTests
     public void FromInstanceId_ReturnsNull_WhenNoAddress(string? instanceId) =>
         Assert.Null(BluetoothAddress.FromInstanceId(instanceId));
 }
+
+public class BluetoothEndpointIdTests
+{
+    [Theory]
+    [InlineData("Bluetooth#Bluetooth3c:21:9c:aa:bb:cc-d1:04:c6:ae:cb:01", 0xD104C6AECB01UL)]
+    [InlineData("BluetoothLE#BluetoothLE3c:21:9c:aa:bb:cc-41:42:43:6b:df:91", 0x4142436BDF91UL)]
+    public void FromEndpointId_TakesTheRemoteAddress(string id, ulong expected) =>
+        Assert.Equal(expected, BatTray.Core.BluetoothAddress.FromEndpointId(id));
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(@"BTHENUM\DEV_4142436BDF91\8&1")]
+    public void FromEndpointId_RejectsOtherIds(string id) =>
+        Assert.Null(BatTray.Core.BluetoothAddress.FromEndpointId(id));
+}
