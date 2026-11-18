@@ -52,6 +52,13 @@ BatTray uses a catalogue of **pluggable protocols** (`IHidBatteryProtocol`):
 | SteelSeries | Arctis 1/7/7+/Pro/7X/7P, Arctis Nova 3P/5/7, Aerox 3/5/9, Prime, Rival 3 Wireless, Rival 650 |
 | Corsair | Legacy Void/HS headsets and Bragi devices (Dark Core, Ironclaw, Harpoon, M65/M75, K57/K70, Slipstream, Virtuoso, HS80…) |
 | HyperX | Cloud Flight, Cloud Alpha Wireless, Cloud II Wireless, Cloud Alpha 2, Pulsefire Haste 2 |
+| Sino Wealth "Aurora" | Glorious Model O Wireless, Lamzu, Attack Shark R5 Ultra |
+| MonsGeek / Akko (RongYuan) | MonsGeek and Akko keyboards on their 2.4 GHz dongle (3151:5037/5038) |
+| Keychron Ultra-Link | Keychron M2 / M5 / M6 mice |
+| Rapoo | Rapoo VT3 PRO receiver |
+| Ajazz | Ajazz AJ179 |
+| Darmoshark | Darmoshark mice (1915:0723 receiver) |
+| MCHOSE (Realtek) | MCHOSE L7 / M7 / A7 V2 / K7 |
 | GetPower (Compx/Areson/Nordic) | Redragon (25A7:FA07/FA08), ATK, VXE, VGN, Dareu, Zaopin, Scyrox, G-Wolves |
 | Standard HID battery (0x06/0x20, 0x85) | Any receiver that follows the HID specification |
 
@@ -60,7 +67,8 @@ Commands that change settings or switch dongle modes are never used. Unrecognise
 written to — use **Save diagnostics report…** to capture their HID
 layout so support can be added.
 
-> The Razer, SteelSeries, Corsair, HyperX and PlayStation protocols are implemented from public
+> The Razer, SteelSeries, Corsair, HyperX, PlayStation, Aurora, MonsGeek/Akko, Keychron, Rapoo, Ajazz,
+> Darmoshark and MCHOSE protocols are implemented from public
 > documentation and open-source drivers and covered by unit tests, but not yet verified on real hardware.
 
 ## Settings

@@ -39,6 +39,13 @@ public sealed class HidDongleBatteryProvider : IBatteryProvider, IDiagnosticsSou
         new SteelSeriesProtocol(),
         new CorsairProtocol(),
         new HyperXProtocol(),
+        new SinoWealthAuroraProtocol(),
+        new MonsGeekDongleProtocol(),
+        new KeychronProtocol(),
+        new RapooProtocol(),
+        new AjazzProtocol(),
+        new DarmosharkProtocol(),
+        new MchoseProtocol(),
         new GetPowerProtocol(),
         new StandardHidBatteryProtocol(),
     ];
