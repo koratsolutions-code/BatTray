@@ -11,16 +11,19 @@ public sealed record DetailPanelItem(
     BatteryLevel Level,
     bool IsCharging,
     bool IsHidden,
-    string Details)
+    string Details,
+    bool IsEstimated = false)
 {
-    public string PercentText => Percent is { } p ? $"{p}%" : "—";
+    public string PercentText => Percent is { } p ? $"{(IsEstimated ? "~" : string.Empty)}{p}%" : "—";
 
     /// <summary>Bar fill, 0–1.</summary>
     public double Fraction => (Percent ?? 0) / 100.0;
 
-    public static DetailPanelItem From(Device device, int low, int critical, bool hidden)
+    public static DetailPanelItem From(Device device, int low, int critical, bool hidden, string? estimateDetails = null)
     {
-        var details = $"Updated {device.LastUpdated.LocalDateTime:HH:mm} · {device.Source}";
+        var details = device.Estimated && estimateDetails is not null
+            ? estimateDetails
+            : $"Updated {device.LastUpdated.LocalDateTime:HH:mm} · {device.Source}";
         if (hidden)
             details += " · hidden from taskbar";
         return new DetailPanelItem(
@@ -30,6 +33,7 @@ public sealed record DetailPanelItem(
             BatteryLevelPalette.Classify(device.BatteryPercent, low, critical),
             device.Charging == true,
             hidden,
-            details);
+            details,
+            device.Estimated);
     }
 }

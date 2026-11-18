@@ -65,7 +65,7 @@ public sealed class DeviceMonitor : IDisposable
 
     /// <summary>
     /// Merges devices reported by several providers: when two share the same <see cref="Device.Id"/>,
-    /// the reading with a known percentage wins, then the most recent one. A known
+    /// the reading with a known percentage wins, then a measured one over an estimate, then the most recent one. A known
     /// <see cref="DeviceKind"/> reported by any provider is kept even if the winning reading has none.
     /// Devices no provider could measure are dropped. Result is sorted by name.
     /// </summary>
@@ -94,6 +94,7 @@ public sealed class DeviceMonitor : IDisposable
             {
                 var winner = g
                     .OrderByDescending(d => d.BatteryPercent.HasValue)
+                    .ThenBy(d => d.Estimated)
                     .ThenByDescending(d => d.LastUpdated)
                     .First();
                 var knownKind = g.Select(d => d.Kind).FirstOrDefault(k => k != DeviceKind.Other);

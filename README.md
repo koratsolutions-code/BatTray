@@ -18,6 +18,8 @@ Windows taskbar: the device icon next to its percentage.
 - **Detail panel** (left-click the widget or the tray icon): every device with a level bar, charging state,
   last reading and source.
 - **Low battery alerts**: one Windows notification per discharge when a device drops to the critical level.
+- **Usage-based estimates** for devices that never report their battery (many budget headsets and mice):
+  BatTray counts how long you use them and shows an estimate such as `~62%`.
 - **Tray icon and menu** (right-click): choose which devices to show, start with Windows, alerts on/off,
   diagnostics report, log folder.
 - Light and dark taskbar themes, any DPI scaling, auto-hide taskbar, full-screen apps, Explorer restarts.
@@ -73,6 +75,17 @@ Everything is set from the tray menu (right-click the BatTray icon or the widget
 - **Low battery alerts**: on or off.
 - **Save diagnostics report…** and **Open log folder**: useful when asking for support.
 - **About BatTray**: version, website and license.
+
+### Estimate battery from usage
+Some devices do not send their battery level to the PC at all, so nothing can read it. For those, open
+**Estimate battery from usage** in the menu, pick the device and enter its battery life (hours of use on a full
+charge, from the manual) and its current charge. From then on:
+- A headset counts as in use while sound plays through it, and for 10 minutes after.
+- A mouse or keyboard counts as in use while you use it, and for 10 minutes after.
+- The level is shown with a `~` (for example `~62%`). Use **I just charged it** after each charge.
+
+It is an approximation: the real battery depends on volume, lighting and the battery's age.
+Estimates are stored in `%AppData%\KoratSolutions\BatTray\estimates.json`.
 
 The level turns amber below 30% and red below 15%, which is also when the alert is shown.
 

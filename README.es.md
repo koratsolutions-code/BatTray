@@ -18,6 +18,8 @@ en la barra de tareas de Windows: el icono del dispositivo junto a su porcentaje
   los botones de las apps.
 - **Panel de detalle** (clic izquierdo en el widget o en el icono de la bandeja): todos los dispositivos con
   barra de nivel, estado de carga, última lectura y origen.
+- **Estimación por tiempo de uso** para dispositivos que nunca envían su batería (muchos auriculares y ratones
+  económicos): BatTray cuenta cuánto los usas y muestra una estimación como `~62%`.
 - **Alertas de batería baja**: una notificación de Windows por descarga cuando un dispositivo llega al nivel crítico.
 - **Icono y menú en la bandeja** (clic derecho): elegir qué dispositivos mostrar, iniciar con Windows,
   activar/desactivar alertas, informe de diagnóstico, carpeta de logs.
@@ -74,6 +76,17 @@ Todo se configura desde el menú de la bandeja (clic derecho en el icono de BatT
 - **Low battery alerts**: activar o desactivar las alertas.
 - **Save diagnostics report…** y **Open log folder**: útiles para pedir soporte.
 - **About BatTray**: versión, web y licencia.
+
+### Estimar la batería por tiempo de uso
+Algunos dispositivos no envían su nivel de batería al PC, así que nada puede leerlo. Para ellos, abre
+**Estimate battery from usage** en el menú, elige el dispositivo e indica su autonomía (horas de uso con una carga
+completa, según el manual) y su carga actual. A partir de ahí:
+- Un auricular cuenta como en uso mientras suena audio por él y durante los 10 minutos siguientes.
+- Un ratón o teclado cuenta como en uso mientras lo usas y durante los 10 minutos siguientes.
+- El nivel se muestra con `~` (por ejemplo `~62%`). Usa **I just charged it** después de cada carga.
+
+Es una aproximación: la batería real depende del volumen, las luces y la edad de la batería.
+Las estimaciones se guardan en `%AppData%\KoratSolutions\BatTray\estimates.json`.
 
 El nivel se pone ámbar por debajo del 30% y rojo por debajo del 15%, que es cuando salta la alerta.
 

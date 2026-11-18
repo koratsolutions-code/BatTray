@@ -118,6 +118,10 @@ public sealed class HidDongleBatteryProvider : IBatteryProvider, IDiagnosticsSou
         }
     }
 
+    /// <summary>Receivers found in the last scan that no protocol can read (candidates for a usage estimate).</summary>
+    public IReadOnlyList<HidReceiver> ReceiversWithoutProtocol =>
+        _lastReceivers.Where(r => !_protocols.Any(p => SafeCanHandle(p, r))).ToList();
+
     public IReadOnlyList<string> DescribeDevices()
     {
         var lines = new List<string>();

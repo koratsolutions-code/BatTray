@@ -98,7 +98,7 @@ internal sealed class TrayIconHost : IDisposable
     {
         var lines = devices.Count == 0
             ? ["No devices with battery data"]
-            : devices.Select(d => $"{d.Name}: {(d.BatteryPercent is { } p ? $"{p}%" : "?")}");
+            : devices.Select(d => $"{d.Name}: {(d.BatteryPercent is { } p ? $"{(d.Estimated ? "~" : string.Empty)}{p}%" : "?")}");
         var text = "BatTray\n" + string.Join("\n", lines);
         // The notification area truncates tooltips at 127 characters.
         _icon.ToolTipText = text.Length > 127 ? text[..124] + "…" : text;

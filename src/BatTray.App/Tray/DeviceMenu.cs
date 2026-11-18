@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using BatTray.Core.Estimation;
 using BatTray.Core.Models;
 using BatTray.Core.Settings;
 
@@ -15,7 +16,13 @@ internal sealed record DeviceMenuActions(
     Action SaveDiagnostics,
     Action OpenLogFolder,
     Action ShowAbout,
+    Action<string> ConfigureEstimate,
+    Action<string> MarkCharged,
+    Action<string> StopEstimate,
     Action Exit);
+
+/// <summary>A device that does not report its battery: it can be estimated from usage time.</summary>
+internal sealed record EstimateCandidate(string Id, string Name, DeviceKind Kind, BatteryEstimate? Estimate);
 
 /// <summary>Builds the shared BatTray context menu.</summary>
 internal static class DeviceMenu
@@ -26,6 +33,7 @@ internal static class DeviceMenu
         IReadOnlyList<Device> devices,
         AppSettings settings,
         bool startWithWindows,
+        IReadOnlyList<EstimateCandidate> estimateCandidates,
         DeviceMenuActions actions)
     {
         menu.Items.Clear();
@@ -48,7 +56,7 @@ internal static class DeviceMenu
                     header.Children.Add(icon);
                 header.Children.Add(new TextBlock
                 {
-                    Text = $"{device.Name}  —  {(device.BatteryPercent is { } p ? $"{p}%" : "?")}{(device.Charging == true ? "  ⚡ charging" : string.Empty)}",
+                    Text = $"{device.Name}  —  {(device.BatteryPercent is { } p ? $"{(device.Estimated ? "~" : string.Empty)}{p}%" : "?")}{(device.Charging == true ? "  ⚡ charging" : string.Empty)}",
                     Margin = new Thickness(8, 0, 0, 0),
                     VerticalAlignment = VerticalAlignment.Center,
                 });
@@ -65,6 +73,9 @@ internal static class DeviceMenu
                 menu.Items.Add(item);
             }
         }
+
+        if (estimateCandidates.Count > 0)
+            menu.Items.Add(CreateEstimatesMenu(estimateCandidates, actions));
 
         menu.Items.Add(new Separator());
 
@@ -98,6 +109,40 @@ internal static class DeviceMenu
         var exit = new MenuItem { Header = "Exit BatTray" };
         exit.Click += (_, _) => actions.Exit();
         menu.Items.Add(exit);
+    }
+
+    /// <summary>"Estimate battery from usage" submenu for devices that do not report their battery.</summary>
+    private static MenuItem CreateEstimatesMenu(IReadOnlyList<EstimateCandidate> candidates, DeviceMenuActions actions)
+    {
+        var root = new MenuItem
+        {
+            Header = "Estimate battery from usage",
+            ToolTip = "For devices that do not report their battery: BatTray counts how long you use them",
+        };
+        foreach (var candidate in candidates)
+        {
+            var id = candidate.Id;
+            if (candidate.Estimate is not { } estimate)
+            {
+                var start = new MenuItem { Header = $"{candidate.Name}…" };
+                start.Click += (_, _) => actions.ConfigureEstimate(id);
+                root.Items.Add(start);
+                continue;
+            }
+
+            var device = new MenuItem { Header = $"{estimate.Name} (~{BatteryEstimator.Percent(estimate, DateTimeOffset.UtcNow)}%)" };
+            var charged = new MenuItem { Header = "I just charged it" };
+            charged.Click += (_, _) => actions.MarkCharged(id);
+            var change = new MenuItem { Header = $"Battery life: {estimate.RatedHours:0.#} h…" };
+            change.Click += (_, _) => actions.ConfigureEstimate(id);
+            var stop = new MenuItem { Header = "Stop estimating" };
+            stop.Click += (_, _) => actions.StopEstimate(id);
+            device.Items.Add(charged);
+            device.Items.Add(change);
+            device.Items.Add(stop);
+            root.Items.Add(device);
+        }
+        return root;
     }
 
     private static UIElement? CreateIcon(DeviceKind kind)

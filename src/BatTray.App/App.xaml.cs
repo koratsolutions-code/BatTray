@@ -7,8 +7,10 @@ using BatTray.App.Services;
 using BatTray.App.Taskbar;
 using BatTray.App.Theme;
 using BatTray.App.Tray;
+using BatTray.App.Usage;
 using BatTray.App.ViewModels;
 using BatTray.Core;
+using BatTray.Core.Estimation;
 using BatTray.Core.Models;
 using BatTray.Core.Providers;
 using BatTray.Core.Settings;
@@ -30,6 +32,8 @@ public partial class App : Application
 
     private readonly SettingsStore _settingsStore = new();
     private readonly BatteryAlertTracker _alerts = new();
+    private readonly EstimateStore _estimateStore = new();
+    private static readonly TimeSpan EstimateSaveInterval = TimeSpan.FromMinutes(5);
     private AppSettings _settings = new();
     private IReadOnlyList<Device> _devices = [];
     private IReadOnlyList<IBatteryProvider> _providers = [];
@@ -45,6 +49,10 @@ public partial class App : Application
     private MenuPresenter? _menuPresenter;
     private DetailPanel? _panel;
     private DeviceMenuActions? _menuActions;
+    private BatteryEstimator? _estimator;
+    private UsageActivityMonitor? _usage;
+    private HidDongleBatteryProvider? _hidProvider;
+    private DispatcherTimer? _estimateSaveTimer;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -87,7 +95,8 @@ public partial class App : Application
         _theme = new ThemeWatcher(Resources);
 
         _menuActions = new DeviceMenuActions(SetDeviceHidden, SetStartWithWindows, SetLowBatteryAlerts, SaveDiagnostics,
-            DiagnosticsReport.OpenLogFolder, About.AboutWindow.ShowSingle, () => Shutdown());
+            DiagnosticsReport.OpenLogFolder, About.AboutWindow.ShowSingle, ConfigureEstimate, MarkCharged, StopEstimate,
+            () => Shutdown());
 
         _menuPresenter = new MenuPresenter();
 
@@ -116,7 +125,18 @@ public partial class App : Application
         _buttonsProbe = new TaskButtonsProbe(Dispatcher);
         _buttonsProbe.Changed += _widgets.SetTaskButtonsRight;
 
-        _providers = CreateProviders(demo);
+        // Usage-based estimates for devices that do not report their battery.
+        _estimator = new BatteryEstimator(_estimateStore.Load());
+        if (!demo)
+        {
+            _usage = new UsageActivityMonitor(_estimator);
+            _estimateSaveTimer = new DispatcherTimer { Interval = EstimateSaveInterval };
+            _estimateSaveTimer.Tick += (_, _) => SaveEstimates(onlyIfDirty: true);
+            _estimateSaveTimer.Start();
+        }
+
+        _providers = CreateProviders(demo, _estimator);
+        _hidProvider = _providers.OfType<HidDongleBatteryProvider>().FirstOrDefault();
         _monitor = new DeviceMonitor(_providers, demo ? DemoPollInterval : PollInterval);
         _monitor.DevicesChanged += OnDevicesChanged;
         _monitor.ProviderFailed += (_, f) => Log.Error($"Provider '{f.Provider.Name}' failed.", f.Error);
@@ -127,17 +147,23 @@ public partial class App : Application
         _monitor.Start();
     }
 
-    private static IReadOnlyList<IBatteryProvider> CreateProviders(bool demo) =>
-        demo
-            ? [new FakeBatteryProvider(simulateDrain: true)]
-            :
-            [
-                new BleGattBatteryProvider(),
-                new BluetoothPnpBatteryProvider(),
-                new HidDongleBatteryProvider(),
-                new GameControllerBatteryProvider(),
-                new SonyControllerBatteryProvider(),
-            ];
+    private static IReadOnlyList<IBatteryProvider> CreateProviders(bool demo, BatteryEstimator? estimator)
+    {
+        if (demo)
+            return [new FakeBatteryProvider(simulateDrain: true)];
+
+        List<IBatteryProvider> providers =
+        [
+            new BleGattBatteryProvider(),
+            new BluetoothPnpBatteryProvider(),
+            new HidDongleBatteryProvider(),
+            new GameControllerBatteryProvider(),
+            new SonyControllerBatteryProvider(),
+        ];
+        if (estimator is not null)
+            providers.Add(new EstimatedBatteryProvider(estimator));
+        return providers;
+    }
 
     private void OnDevicesChanged(object? sender, IReadOnlyList<Device> devices)
     {
@@ -158,8 +184,10 @@ public partial class App : Application
 
         foreach (var device in due)
         {
-            Log.Info($"Low battery alert: {device.Name} at {device.BatteryPercent}%.");
-            _tray.Notify($"{device.Name}: {device.BatteryPercent}% battery", "Charge it or replace the batteries soon.");
+            Log.Info($"Low battery alert: {device.Name} at {device.BatteryPercent}%{(device.Estimated ? " (estimated)" : string.Empty)}.");
+            _tray.Notify(
+                device.Estimated ? $"{device.Name}: about {device.BatteryPercent}% battery (estimated)" : $"{device.Name}: {device.BatteryPercent}% battery",
+                "Charge it or replace the batteries soon.");
         }
     }
 
@@ -196,7 +224,7 @@ public partial class App : Application
             return;
 
         _panel.SetItems(_devices
-            .Select(d => DetailPanelItem.From(d, _settings.LowThreshold, _settings.CriticalThreshold, _settings.IsHidden(d.Id)))
+            .Select(d => DetailPanelItem.From(d, _settings.LowThreshold, _settings.CriticalThreshold, _settings.IsHidden(d.Id), EstimateDetails(d)))
             .ToList());
         _panel.ShowNearCursor(taskbar.Taskbar, taskbar.Monitor);
     }
@@ -212,7 +240,82 @@ public partial class App : Application
     private void FillMenu(ContextMenu menu)
     {
         if (_menuActions is not null)
-            DeviceMenu.Fill(menu, _devices, _settings, AutoStart.IsEnabled(), _menuActions);
+            DeviceMenu.Fill(menu, _devices, _settings, AutoStart.IsEnabled(), EstimateCandidates(), _menuActions);
+    }
+
+    // ---------- Usage-based estimates ----------
+
+    /// <summary>Receivers that report no battery, plus every device already estimated.</summary>
+    private IReadOnlyList<EstimateCandidate> EstimateCandidates()
+    {
+        if (_estimator is null)
+            return [];
+        var candidates = new Dictionary<string, EstimateCandidate>(StringComparer.OrdinalIgnoreCase);
+        foreach (var receiver in _hidProvider?.ReceiversWithoutProtocol ?? [])
+        {
+            var estimate = _estimator.Get(receiver.Id);
+            candidates[receiver.Id] = new EstimateCandidate(receiver.Id,
+                estimate?.Name ?? _usage?.FindAudioName(receiver.Id) ?? receiver.DisplayName, receiver.InferKind(), estimate);
+        }
+        foreach (var estimate in _estimator.Snapshot())
+            candidates.TryAdd(estimate.DeviceId, new EstimateCandidate(estimate.DeviceId, estimate.Name, estimate.Kind, estimate));
+        return candidates.Values.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+    }
+
+    private void ConfigureEstimate(string deviceId)
+    {
+        if (_estimator is null || EstimateCandidates().FirstOrDefault(c => c.Id == deviceId) is not { } candidate)
+            return;
+
+        var existing = candidate.Estimate;
+        var name = existing?.Name ?? _usage?.FindAudioName(deviceId) ?? candidate.Name;
+        var hours = existing?.RatedHours ?? BatteryEstimator.DefaultRatedHours(candidate.Kind);
+        var percent = existing is null ? 100 : BatteryEstimator.Percent(existing, DateTimeOffset.UtcNow);
+
+        var dialog = new EstimateDialog(name, hours, percent);
+        if (dialog.ShowDialog() != true)
+            return;
+
+        _estimator.Configure(deviceId, dialog.DeviceName, candidate.Kind, dialog.RatedHours, dialog.CurrentPercent, DateTimeOffset.UtcNow);
+        Log.Info($"Usage estimate set for {dialog.DeviceName} ({deviceId}): {dialog.RatedHours} h, now {dialog.CurrentPercent}%.");
+        SaveEstimates(onlyIfDirty: false);
+    }
+
+    private void MarkCharged(string deviceId)
+    {
+        _estimator?.MarkCharged(deviceId, DateTimeOffset.UtcNow);
+        Log.Info($"Usage estimate reset to 100% for {deviceId}.");
+        SaveEstimates(onlyIfDirty: false);
+    }
+
+    private void StopEstimate(string deviceId)
+    {
+        _estimator?.Remove(deviceId);
+        Log.Info($"Usage estimate removed for {deviceId}.");
+        SaveEstimates(onlyIfDirty: false);
+    }
+
+    private string? EstimateDetails(Device device)
+    {
+        if (!device.Estimated || _estimator?.Get(device.Id) is not { } e)
+            return null;
+        var since = DateTimeOffset.UtcNow - e.ChargedAt;
+        var ago = since.TotalDays >= 1 ? $"{(int)since.TotalDays} d" : since.TotalHours >= 1 ? $"{(int)since.TotalHours} h" : $"{(int)since.TotalMinutes} min";
+        return $"Estimated from usage · {e.UsedHours:0.#} of {e.RatedHours:0.#} h used · set {ago} ago";
+    }
+
+    private void SaveEstimates(bool onlyIfDirty)
+    {
+        if (_estimator is null || (onlyIfDirty && !_estimator.IsDirty))
+            return;
+        try
+        {
+            _estimateStore.Save(_estimator.Snapshot(markSaved: true));
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Could not save estimates to {_estimateStore.Path}.", ex);
+        }
     }
 
     private void SetDeviceHidden(string deviceId, bool hidden)
@@ -256,7 +359,7 @@ public partial class App : Application
     private static async Task ListDevicesAsync(bool demo)
     {
         Log.Info("--list-devices: querying every provider once.");
-        foreach (var provider in CreateProviders(demo))
+        foreach (var provider in CreateProviders(demo, estimator: null))
         {
             using (provider)
             {
@@ -328,6 +431,9 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _monitor?.Dispose();
+        _estimateSaveTimer?.Stop();
+        _usage?.Dispose();
+        SaveEstimates(onlyIfDirty: true);
         foreach (var provider in _providers)
             provider.Dispose();
         _buttonsProbe?.Dispose();
