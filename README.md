@@ -1,9 +1,7 @@
-<img src="src/BatTray.App/Assets/BatTray-512.png" alt="BatTray" width="88" align="left" />
-
-# BatTray
-**Your devices. One glance.**
-
-<br clear="left" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/header-dark.png" />
+  <img src="docs/images/header-light.png" alt="BatTray — Your devices. One glance." width="296" />
+</picture>
 
 🌐 **English** · [Español](README.es.md)
 
