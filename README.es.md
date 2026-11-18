@@ -1,7 +1,14 @@
-# BatTray
-**Your devices. One glance.** — por Korat Solutions
+<p align="center">
+  <img src="src/BatTray.App/Assets/BatTray-512.png" alt="BatTray" width="128" />
+</p>
 
-🌐 [English](README.md) · **Español**
+<h1 align="center">BatTray</h1>
+<p align="center"><b>Your devices. One glance.</b></p>
+<p align="center">
+  por <a href="https://github.com/koratsolutions-code"><img src="src/BatTray.App/Assets/KoratLogo.png" alt="Korat Solutions" height="28" align="middle" /></a>
+</p>
+
+<p align="center">🌐 <a href="README.md">English</a> · <b>Español</b></p>
 
 BatTray muestra el nivel de batería de tus periféricos (ratón, teclado, auriculares, mandos…) directamente
 en la barra de tareas de Windows: el icono del dispositivo junto a su porcentaje.
@@ -63,5 +70,9 @@ Todo se configura desde el menú de la bandeja (clic derecho en el icono de BatT
 - **Start with Windows**: iniciar con Windows.
 - **Low battery alerts**: activar o desactivar las alertas.
 - **Save diagnostics report…** y **Open log folder**: útiles para pedir soporte.
+- **About BatTray**: versión, web y licencia.
 
 El nivel se pone ámbar por debajo del 30% y rojo por debajo del 15%, que es cuando salta la alerta.
+
+## Licencia
+[MIT](LICENSE) © 2026 Korat Solutions.

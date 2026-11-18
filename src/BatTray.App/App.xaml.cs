@@ -286,11 +286,15 @@ public partial class App : Application
         Log.Info("--uninstall-cleanup: removing start-with-Windows entry and closing BatTray.");
         AutoStart.SetEnabled(false);
 
+        // Only close copies of this same executable: never an unrelated process that happens to be called "BatTray".
         var self = Environment.ProcessId;
+        var ownPath = Environment.ProcessPath;
         foreach (var process in System.Diagnostics.Process.GetProcessesByName("BatTray").Where(p => p.Id != self))
         {
             try
             {
+                if (ownPath is null || !string.Equals(process.MainModule?.FileName, ownPath, StringComparison.OrdinalIgnoreCase))
+                    continue;
                 process.Kill();
                 process.WaitForExit(3000);
             }

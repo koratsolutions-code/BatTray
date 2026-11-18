@@ -1,7 +1,14 @@
-# BatTray
-**Your devices. One glance.** — by Korat Solutions
+<p align="center">
+  <img src="src/BatTray.App/Assets/BatTray-512.png" alt="BatTray" width="128" />
+</p>
 
-🌐 **English** · [Español](README.es.md)
+<h1 align="center">BatTray</h1>
+<p align="center"><b>Your devices. One glance.</b></p>
+<p align="center">
+  by <a href="https://github.com/koratsolutions-code"><img src="src/BatTray.App/Assets/KoratLogo.png" alt="Korat Solutions" height="28" align="middle" /></a>
+</p>
+
+<p align="center">🌐 <b>English</b> · <a href="README.es.md">Español</a></p>
 
 BatTray shows the battery level of your peripherals (mouse, keyboard, headset, gamepad…) right on the
 Windows taskbar: the device icon next to its percentage.
@@ -62,5 +69,9 @@ Everything is set from the tray menu (right-click the BatTray icon or the widget
 - **Start with Windows**.
 - **Low battery alerts**: on or off.
 - **Save diagnostics report…** and **Open log folder**: useful when asking for support.
+- **About BatTray**: version, website and license.
 
 The level turns amber below 30% and red below 15%, which is also when the alert is shown.
+
+## License
+[MIT](LICENSE) © 2026 Korat Solutions.

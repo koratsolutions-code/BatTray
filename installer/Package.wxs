@@ -20,10 +20,9 @@
     <Icon Id="BatTrayIcon" SourceFile="..\src\BatTray.App\Assets\BatTray.ico" />
     <Property Id="ARPPRODUCTICON" Value="BatTrayIcon" />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/koratsolutions-code/BatTray" />
-    <Property Id="ARPNOMODIFY" Value="1" />
 
     <!-- Branded wizard: welcome + license, progress, finish with "Launch BatTray" (art from tools/generate-installer-art.py). -->
-    <ui:WixUI Id="WixUI_Minimal" />
+    <ui:WixUI Id="WixUI_Minimal" /> <!-- also sets ARPNOMODIFY: no "Modify" in Settings > Apps -->
     <WixVariable Id="WixUILicenseRtf" Value="assets\License.rtf" />
     <WixVariable Id="WixUIDialogBmp" Value="assets\Dialog.bmp" />
     <WixVariable Id="WixUIBannerBmp" Value="assets\Banner.bmp" />
