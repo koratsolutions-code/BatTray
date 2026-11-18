@@ -29,6 +29,7 @@ namespace BatTray.App;
 ///   --list-devices         log one reading of every provider and exit (diagnostics)
 ///   --uninstall-cleanup    used by the uninstaller: disable start with Windows, close BatTray, exit
 ///   --settings             open the settings window once BatTray has started
+///   --show-menu            open the BatTray menu after start-up and reopen it when it closes (3 times; to check its look)
 /// </summary>
 public partial class App : Application
 {
@@ -140,6 +141,10 @@ public partial class App : Application
         {
             _widgets.Reposition();
             _tray.SetTheme(_theme.IsLight);
+            // A closed menu is not told about resource changes: rebuild its template so the frame
+            // (background, border) picks up the new colours the next time it opens.
+            foreach (var menu in new[] { _tray.Menu, _widgetMenu })
+                RefreshTemplate(menu);
         };
 
         _buttonsProbe = new TaskButtonsProbe(Dispatcher);
@@ -178,6 +183,26 @@ public partial class App : Application
 
         if (HasFlag(e.Args, "--settings"))
             _ = Dispatcher.BeginInvoke(ShowSettings, DispatcherPriority.ApplicationIdle);
+        if (HasFlag(e.Args, "--show-menu"))
+        {
+            // Opens the menu after start-up and again each time it closes (three times in all), so its look can
+            // be checked before and after changing theme or language from inside it.
+            var opened = 0;
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
+            timer.Tick += (_, _) =>
+            {
+                timer.Interval = TimeSpan.FromSeconds(2);
+                if (_tray is null || _tray.Menu.IsOpen)
+                    return;
+                if (++opened > 3)
+                {
+                    timer.Stop();
+                    return;
+                }
+                ShowMenu(_tray.Menu);
+            };
+            timer.Start();
+        }
     }
 
     private static IReadOnlyList<IBatteryProvider> CreateProviders(bool demo, BatteryEstimator? estimator)
@@ -254,6 +279,13 @@ public partial class App : Application
             .Select(d => DetailPanelItem.From(d, _settings.LowThreshold, _settings.CriticalThreshold, _settings.IsHidden(d.Id), EstimateDetails(d)))
             .ToList());
         _panel.ShowNearCursor(taskbar.Taskbar, taskbar.Monitor);
+    }
+
+    private static void RefreshTemplate(Control control)
+    {
+        control.Template = null;
+        control.ClearValue(Control.TemplateProperty);
+        control.ApplyTemplate();
     }
 
     private void ShowMenu(ContextMenu menu)

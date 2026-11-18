@@ -192,7 +192,7 @@ internal static class DeviceMenu
     private static MenuItem IgnoredItem(IReadOnlyList<EstimateCandidate> ignored, DeviceMenuActions actions)
     {
         var root = new MenuItem { Header = L.HiddenReceivers(ignored.Count) };
-        root.SetResourceReference(Control.ForegroundProperty, SystemColors.GrayTextBrushKey);
+        root.SetResourceReference(Control.ForegroundProperty, "Menu.Disabled");
         foreach (var receiver in ignored)
         {
             var id = receiver.Id;
@@ -256,7 +256,7 @@ internal static class DeviceMenu
         header.Children.Add(new TextBlock { Text = device.Name, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
         var value = new TextBlock { Text = $"  —  {level}", VerticalAlignment = VerticalAlignment.Center };
         if (muted)
-            value.SetResourceReference(TextBlock.ForegroundProperty, SystemColors.GrayTextBrushKey);
+            value.SetResourceReference(TextBlock.ForegroundProperty, "Menu.Disabled");
         header.Children.Add(value);
         return header;
     }
@@ -280,7 +280,7 @@ internal static class DeviceMenu
             StrokeEndLineCap = PenLineCap.Round,
             StrokeLineJoin = PenLineJoin.Round,
         };
-        path.SetResourceReference(Shape.StrokeProperty, SystemColors.MenuTextBrushKey);
+        path.SetResourceReference(Shape.StrokeProperty, "Menu.Text");
         return path;
     }
 }

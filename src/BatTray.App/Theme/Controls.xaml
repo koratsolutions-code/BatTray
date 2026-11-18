@@ -4,7 +4,6 @@
     <!--
         Shared styles for BatTray's windows. They only set colours (App.* brushes published by ThemeWatcher) and
         keep the standard Windows controls, so menus, buttons and check boxes look like classic Windows.
-        Menus are not styled at all.
     -->
 
     <Style x:Key="ThemedWindow" TargetType="Window">
@@ -65,5 +64,97 @@
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+    <!--
+        Menus: a copy of the classic Windows (Aero2) menu look (square corners, blue check square, blue
+        highlight frame, arrow for submenus) with colours taken from the theme (Menu.* brushes), so the same
+        menu works on light and dark.
+    -->
+    <Style TargetType="ContextMenu">
+        <Setter Property="Foreground" Value="{DynamicResource Menu.Text}" />
+        <Setter Property="FontFamily" Value="Segoe UI" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="HasDropShadow" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Background="{DynamicResource Menu.Background}" BorderBrush="{DynamicResource Menu.Border}"
+                            BorderThickness="1" Padding="2" SnapsToDevicePixels="True">
+                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Border Height="1" Margin="30,3,2,3" Background="{DynamicResource Menu.Separator}" SnapsToDevicePixels="True" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource Menu.Text}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="1"
+                            MinHeight="22" SnapsToDevicePixels="True">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="22" />
+                            </Grid.ColumnDefinitions>
+
+                            <ContentPresenter x:Name="IconHost" ContentSource="Icon" Margin="3" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Border x:Name="CheckBox" Width="22" Height="22" Visibility="Collapsed" HorizontalAlignment="Center"
+                                    Background="{DynamicResource Menu.CheckBackground}" BorderBrush="{DynamicResource Menu.CheckBorder}" BorderThickness="1">
+                                <Path Data="F1 M 10.0,1.2 L 4.7,9.1 L 4.5,9.1 L 0,5.2 L 1.3,3.5 L 4.3,6.1 L 8.3,0 L 10.0,1.2 Z"
+                                      Fill="{DynamicResource Menu.Text}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+
+                            <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True"
+                                              VerticalAlignment="Center" Margin="6,2,10,2" />
+
+                            <Path x:Name="Arrow" Grid.Column="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  Data="M 0,0 L 4,3.5 L 0,7 Z" Fill="{DynamicResource Menu.Text}" />
+
+                            <Popup x:Name="PART_Popup" Placement="Right" HorizontalOffset="-2" VerticalOffset="-3"
+                                   IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   AllowsTransparency="True" Focusable="False" PopupAnimation="None">
+                                <Border Background="{DynamicResource Menu.Background}" BorderBrush="{DynamicResource Menu.Border}"
+                                        BorderThickness="1" Padding="2" Margin="0,0,5,5" SnapsToDevicePixels="True">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="5" ShadowDepth="2" Opacity="0.3" />
+                                    </Border.Effect>
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Role" Value="SubmenuHeader">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="CheckBox" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="IconHost" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Menu.HighlightBackground}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Menu.HighlightBorder}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource Menu.Disabled}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

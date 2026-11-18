@@ -124,6 +124,17 @@ internal sealed class ThemeWatcher : IDisposable
         Set("App.InputBorder", light ? "#C9D3E1" : "#5A5A5A");
         Set("App.Danger", light ? "#C42B1C" : "#FF99A4");
 
+        // Menus: the classic Windows (Aero2) menu colours, and a dark version of the same design.
+        Set("Menu.Background", light ? "#F0F0F0" : "#2B2B2B");
+        Set("Menu.Border", light ? "#999999" : "#555555");
+        Set("Menu.Text", light ? "#000000" : "#F2F2F2");
+        Set("Menu.Disabled", light ? "#6D6D6D" : "#8C8C8C");
+        Set("Menu.Separator", light ? "#D7D7D7" : "#454545");
+        Set("Menu.HighlightBackground", light ? "#3D26A0DA" : "#4D26A0DA");
+        Set("Menu.HighlightBorder", light ? "#FF26A0DA" : "#FF2F8FD0");
+        Set("Menu.CheckBackground", light ? "#3D26A0DA" : "#4D26A0DA");
+        Set("Menu.CheckBorder", light ? "#FF26A0DA" : "#FF2F8FD0");
+
         // Detail panel (Windows 11 flyout colours).
         Set("Panel.Background", light ? "#F9F9F9" : "#2C2C2C");
         Set("Panel.Border", light ? "#E0E0E0" : "#404040");
