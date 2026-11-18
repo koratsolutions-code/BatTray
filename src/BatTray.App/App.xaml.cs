@@ -299,9 +299,11 @@ public partial class App : Application
     {
         if (!device.Estimated || _estimator?.Get(device.Id) is not { } e)
             return null;
-        var since = DateTimeOffset.UtcNow - e.ChargedAt;
+        var now = DateTimeOffset.UtcNow;
+        var since = now - e.ChargedAt;
+        var used = BatteryEstimator.UsedHoursAt(e, now);
         var ago = since.TotalDays >= 1 ? $"{(int)since.TotalDays} d" : since.TotalHours >= 1 ? $"{(int)since.TotalHours} h" : $"{(int)since.TotalMinutes} min";
-        return $"Estimated from usage · {e.UsedHours:0.#} of {e.RatedHours:0.#} h used · set {ago} ago";
+        return $"Estimated from usage · {(used < 1 ? $"{used * 60:0} min" : $"{used:0.#} h")} of {e.RatedHours:0.#} h used · set {ago} ago";
     }
 
     private void SaveEstimates(bool onlyIfDirty)

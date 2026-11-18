@@ -130,12 +130,18 @@ public sealed class BatteryEstimator
             return _estimates.TryGetValue(deviceId, out var e) ? Percent(e, now) : null;
     }
 
-    public static int Percent(BatteryEstimate e, DateTimeOffset now)
+    /// <summary>Hours of use at <paramref name="now"/>, including the period still running after the last activity.</summary>
+    public static double UsedHoursAt(BatteryEstimate e, DateTimeOffset now)
     {
         var used = e.UsedHours;
         if (e.LastActivity is { } last && now > last)
             used += Math.Min((now - last).TotalHours, ActivityTail.TotalHours);
-        var remaining = 1 - used / e.RatedHours;
+        return used;
+    }
+
+    public static int Percent(BatteryEstimate e, DateTimeOffset now)
+    {
+        var remaining = 1 - UsedHoursAt(e, now) / e.RatedHours;
         return (int)Math.Clamp(Math.Round(remaining * 100), 0, 100);
     }
 

@@ -28,9 +28,11 @@ internal sealed partial class UsageActivityMonitor : IDisposable
     private readonly Timer _audioTimer;
     private readonly Dictionary<IntPtr, string[]> _deviceTargets = [];
     private readonly Dictionary<string, DateTimeOffset> _lastInput = [];
-    private readonly object _audioLock = new();
-    private readonly Dictionary<string, string?> _audioNames = new(StringComparer.OrdinalIgnoreCase);
-    private MMDeviceEnumerator? _audio;
+    private readonly object _namesLock = new();
+    private readonly HashSet<string> _announced = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<Guid, string> _audioNames = [];
+    private MMDeviceEnumerator? _audio; // created and used on timer (MTA) threads only
+    private int _polling;
     private bool _disposed;
 
     public UsageActivityMonitor(BatteryEstimator estimator)
@@ -43,48 +45,16 @@ internal sealed partial class UsageActivityMonitor : IDisposable
         _window.AddHook(WndProc);
         RegisterRawInput(_window.Handle);
 
-        _audioTimer = new Timer(_ => PollAudio(), null, AudioPoll, AudioPoll);
+        _audioTimer = new Timer(_ => PollAudio(), null, TimeSpan.Zero, AudioPoll);
     }
 
     /// <summary>The friendly name of the audio endpoint that belongs to a receiver (e.g. "OW810"), if any.</summary>
     public string? FindAudioName(string receiverId)
     {
-        lock (_audioLock)
-        {
-            if (_audioNames.TryGetValue(receiverId, out var cached))
-                return cached;
-        }
-        var name = LookUpAudioName(receiverId);
-        lock (_audioLock)
-            _audioNames[receiverId] = name;
-        return name;
-    }
-
-    private string? LookUpAudioName(string receiverId)
-    {
-        if (!ReceiverId.TryParse(receiverId, out _, out _, out var container) || container is null)
+        if (!ReceiverId.TryParse(receiverId, out _, out _, out var container) || container is not { } c)
             return null;
-        try
-        {
-            lock (_audioLock)
-            {
-                _audio ??= new MMDeviceEnumerator();
-                foreach (var endpoint in _audio.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
-                {
-                    if (ContainerOf(endpoint) == container)
-                    {
-                        var name = endpoint.FriendlyName;
-                        var match = ParenthesisedName().Match(name);
-                        return match.Success ? match.Groups[1].Value : name;
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error("Could not read audio endpoints.", ex);
-        }
-        return null;
+        lock (_namesLock)
+            return _audioNames.GetValueOrDefault(c);
     }
 
     // ---------- Raw Input ----------
@@ -120,6 +90,7 @@ internal sealed partial class UsageActivityMonitor : IDisposable
                 continue;
             _lastInput[id] = now;
             _estimator.RecordActivity(id, now);
+            Announce(id, "input");
         }
     }
 
@@ -165,43 +136,70 @@ internal sealed partial class UsageActivityMonitor : IDisposable
 
     private void PollAudio()
     {
-        if (_disposed)
+        if (_disposed || Interlocked.Exchange(ref _polling, 1) == 1)
             return;
-        var estimates = _estimator.Snapshot();
-        var byContainer = new Dictionary<Guid, List<string>>();
-        foreach (var e in estimates)
-        {
-            if (ReceiverId.TryParse(e.DeviceId, out _, out _, out var container) && container is { } c)
-            {
-                if (!byContainer.TryGetValue(c, out var ids))
-                    byContainer[c] = ids = [];
-                ids.Add(e.DeviceId);
-            }
-        }
-        if (byContainer.Count == 0)
-            return;
-
         try
         {
-            lock (_audioLock)
+            var byContainer = new Dictionary<Guid, List<string>>();
+            foreach (var e in _estimator.Snapshot())
             {
-                _audio ??= new MMDeviceEnumerator();
-                var now = DateTimeOffset.UtcNow;
-                foreach (var endpoint in _audio.EnumerateAudioEndPoints(DataFlow.All, DeviceState.Active))
+                if (ReceiverId.TryParse(e.DeviceId, out _, out _, out var container) && container is { } c)
                 {
-                    if (ContainerOf(endpoint) is not { } container || !byContainer.TryGetValue(container, out var ids))
-                        continue;
-                    if (endpoint.AudioMeterInformation.MasterPeakValue <= AudioThreshold)
-                        continue;
-                    foreach (var id in ids)
-                        _estimator.RecordActivity(id, now);
+                    if (!byContainer.TryGetValue(c, out var ids))
+                        byContainer[c] = ids = [];
+                    ids.Add(e.DeviceId);
                 }
             }
+
+            _audio ??= new MMDeviceEnumerator();
+            var names = new Dictionary<Guid, string>();
+            var now = DateTimeOffset.UtcNow;
+            foreach (var endpoint in _audio.EnumerateAudioEndPoints(DataFlow.All, DeviceState.Active))
+            {
+                if (ContainerOf(endpoint) is not { } container)
+                    continue;
+                if (endpoint.DataFlow == DataFlow.Render && !names.ContainsKey(container))
+                    names[container] = ShortName(endpoint.FriendlyName);
+
+                if (!byContainer.TryGetValue(container, out var ids) ||
+                    endpoint.AudioMeterInformation.MasterPeakValue <= AudioThreshold)
+                {
+                    continue;
+                }
+                foreach (var id in ids)
+                {
+                    _estimator.RecordActivity(id, now);
+                    Announce(id, "audio");
+                }
+            }
+            lock (_namesLock)
+                _audioNames = names;
         }
         catch (Exception ex)
         {
             Log.Error("Audio activity poll failed.", ex);
         }
+        finally
+        {
+            Volatile.Write(ref _polling, 0);
+        }
+    }
+
+    /// <summary>"Bluetooth Headset Moti (OW810)" → "OW810".</summary>
+    private static string ShortName(string friendlyName)
+    {
+        var match = ParenthesisedName().Match(friendlyName);
+        return match.Success ? match.Groups[1].Value : friendlyName;
+    }
+
+    /// <summary>Logs the first activity of each estimated device in this session (diagnostics).</summary>
+    private void Announce(string deviceId, string signal)
+    {
+        bool first;
+        lock (_announced)
+            first = _announced.Add(deviceId);
+        if (first)
+            Log.Info($"Usage estimate: first {signal} activity for {deviceId} this session.");
     }
 
     private static readonly PropertyKey ContainerIdKey = new(new Guid("8c7ed206-3f8a-4827-b3ab-ae9e1faefc6c"), 2);
@@ -230,8 +228,7 @@ internal sealed partial class UsageActivityMonitor : IDisposable
         _audioTimer.Dispose();
         _window.RemoveHook(WndProc);
         _window.Dispose();
-        lock (_audioLock)
-            _audio?.Dispose();
+        _audio?.Dispose();
     }
 
     // ---------- Native ----------
