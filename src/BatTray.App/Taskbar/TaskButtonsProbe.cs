@@ -1,15 +1,14 @@
 using System.Windows.Automation;
 using System.Windows.Threading;
 using BatTray.App.Diagnostics;
-using static BatTray.App.Interop.NativeMethods;
 
 namespace BatTray.App.Taskbar;
 
 /// <summary>
 /// On Windows 11 the app buttons are drawn with XAML and <c>ReBarWindow32</c> does not reflect their real
-/// extent. This probe uses UI Automation to get the right edge of the last button (Start, Search, apps…).
-/// It runs on its own thread: UIA calls from the UI thread could deadlock, because our widget is part of
-/// the taskbar's automation tree too.
+/// extent. This probe uses UI Automation to get, for every taskbar, the right edge of its last button
+/// (Start, Search, apps…). It runs on its own thread: UIA calls from the UI thread could deadlock,
+/// because our widget is part of the taskbar's automation tree too.
 /// </summary>
 internal sealed class TaskButtonsProbe : IDisposable
 {
@@ -22,7 +21,7 @@ internal sealed class TaskButtonsProbe : IDisposable
     private readonly Dispatcher _dispatcher;
     private readonly CancellationTokenSource _cts = new();
     private readonly Thread _thread;
-    private int? _lastRight;
+    private Dictionary<IntPtr, int?> _last = [];
     private bool _errorLogged;
 
     public TaskButtonsProbe(Dispatcher dispatcher)
@@ -32,8 +31,11 @@ internal sealed class TaskButtonsProbe : IDisposable
         _thread.SetApartmentState(ApartmentState.MTA);
     }
 
-    /// <summary>Right edge (screen px) of the taskbar buttons; null when it cannot be measured. Raised on the UI thread.</summary>
-    public event Action<int?>? Changed;
+    /// <summary>
+    /// Right edge (screen px) of the buttons of each taskbar, keyed by taskbar window; null when it cannot
+    /// be measured. Raised on the UI thread.
+    /// </summary>
+    public event Action<IReadOnlyDictionary<IntPtr, int?>>? Changed;
 
     public void Start() => _thread.Start();
 
@@ -42,25 +44,24 @@ internal sealed class TaskButtonsProbe : IDisposable
         var token = _cts.Token;
         while (!token.IsCancellationRequested)
         {
-            var right = Measure();
-            if (right != _lastRight)
+            var current = TaskbarLocator.FindTaskbarHandles().ToDictionary(h => h, Measure);
+            if (!SameAs(current))
             {
-                _lastRight = right;
-                _dispatcher.BeginInvoke(() => Changed?.Invoke(right));
+                _last = current;
+                _dispatcher.BeginInvoke(() => Changed?.Invoke(current));
             }
 
             token.WaitHandle.WaitOne(Interval);
         }
     }
 
-    private int? Measure()
+    private bool SameAs(Dictionary<IntPtr, int?> current) =>
+        current.Count == _last.Count && current.All(kv => _last.TryGetValue(kv.Key, out var v) && v == kv.Value);
+
+    private int? Measure(IntPtr taskbar)
     {
         try
         {
-            var taskbar = FindWindow(TaskbarLocator.TaskbarClass, null);
-            if (taskbar == IntPtr.Zero)
-                return null;
-
             var root = AutomationElement.FromHandle(taskbar);
             var buttons = root.FindAll(TreeScope.Descendants, ButtonsCondition);
 

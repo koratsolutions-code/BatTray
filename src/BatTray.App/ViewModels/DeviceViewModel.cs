@@ -44,6 +44,10 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isCharging;
+
+    public bool IsCharging { get => _isCharging; private set => Set(ref _isCharging, value); }
+
     /// <summary>False when the widget hides it for lack of room on the taskbar.</summary>
     public bool IsShown { get => _isShown; set => Set(ref _isShown, value); }
 
@@ -52,7 +56,7 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
     public BatteryLevel Level => BatteryLevelPalette.Classify(_percent, _lowThreshold, _criticalThreshold);
 
     public string ToolTip =>
-        $"{Name}: {PercentText}\nLast reading: {_lastUpdated.LocalDateTime:HH:mm:ss}" +
+        $"{Name}: {PercentText}{(IsCharging ? " (charging)" : string.Empty)}\nLast reading: {_lastUpdated.LocalDateTime:HH:mm:ss}" +
         (string.IsNullOrEmpty(_source) ? string.Empty : $" ({_source})");
 
     public void Update(Device device, int lowThreshold, int criticalThreshold)
@@ -67,6 +71,7 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
         Name = device.Name;
         Kind = device.Kind;
         Percent = device.BatteryPercent;
+        IsCharging = device.Charging == true;
         _lastUpdated = device.LastUpdated;
         _source = device.Source;
         OnPropertyChanged(nameof(ToolTip));

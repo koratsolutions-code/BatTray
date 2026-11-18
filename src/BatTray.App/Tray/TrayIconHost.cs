@@ -28,14 +28,17 @@ internal sealed class TrayIconHost : IDisposable
             MenuActivation = PopupActivationMode.None,
             NoLeftClickDelay = true,
         };
-        _icon.TrayLeftMouseUp += (_, _) => MenuRequested?.Invoke();
+        _icon.TrayLeftMouseUp += (_, _) => PanelRequested?.Invoke();
         _icon.TrayRightMouseUp += (_, _) => MenuRequested?.Invoke();
     }
 
     public ContextMenu Menu { get; }
 
-    /// <summary>The user clicked the icon (left or right button).</summary>
+    /// <summary>The user right-clicked the icon.</summary>
     public event Action? MenuRequested;
+
+    /// <summary>The user left-clicked the icon.</summary>
+    public event Action? PanelRequested;
 
     public void Show(bool lightTaskbar)
     {
@@ -99,6 +102,19 @@ internal sealed class TrayIconHost : IDisposable
         var text = "BatTray\n" + string.Join("\n", lines);
         // The notification area truncates tooltips at 127 characters.
         _icon.ToolTipText = text.Length > 127 ? text[..124] + "…" : text;
+    }
+
+    /// <summary>Shows a Windows notification from the tray icon (respects Focus Assist / Do not disturb).</summary>
+    public void Notify(string title, string message)
+    {
+        try
+        {
+            _icon.ShowNotification(title, message, NotificationIcon.Warning, respectQuietTime: true);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Could not show the notification.", ex);
+        }
     }
 
     /// <summary>Battery outline with a green charge bar, drawn at 32×32 px.</summary>

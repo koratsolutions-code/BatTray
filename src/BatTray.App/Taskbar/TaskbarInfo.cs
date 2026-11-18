@@ -11,7 +11,8 @@ internal sealed record TaskbarInfo(
     RECT Monitor,
     uint Dpi,
     bool AutoHide,
-    bool NotifyAreaEstimated)
+    bool NotifyAreaEstimated,
+    bool IsPrimary = true)
 {
     public double Scale => Dpi / 96.0;
 

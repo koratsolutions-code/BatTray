@@ -6,8 +6,9 @@ using static BatTray.App.Interop.NativeMethods;
 namespace BatTray.App.Taskbar;
 
 /// <summary>
-/// Watches the taskbar: position/size changes (WinEvent), Explorer restarts (TaskbarCreated message),
-/// foreground changes and a once-per-second fallback poll. Must be created and used on the UI thread.
+/// Watches every taskbar (primary and secondary monitors): position/size changes (WinEvent), Explorer
+/// restarts (TaskbarCreated message), monitors being added or removed, foreground changes and a
+/// once-per-second fallback poll. Must be created and used on the UI thread.
 /// </summary>
 internal sealed class TaskbarWatcher : IDisposable
 {
@@ -24,7 +25,8 @@ internal sealed class TaskbarWatcher : IDisposable
     private IntPtr _locationHook;
     private IntPtr _foregroundHook;
     private uint _hookedPid;
-    private TaskbarInfo? _last;
+    private IReadOnlyList<TaskbarInfo> _last = [];
+    private HashSet<IntPtr> _watchedWindows = [];
     private bool _lastFullscreen;
 
     public TaskbarWatcher()
@@ -38,8 +40,8 @@ internal sealed class TaskbarWatcher : IDisposable
         _poll.Tick += (_, _) => Check(force: false);
     }
 
-    /// <summary>The taskbar geometry or the full-screen state changed.</summary>
-    public event Action<TaskbarInfo, bool>? Changed;
+    /// <summary>The set of taskbars, their geometry or the full-screen state changed.</summary>
+    public event Action<IReadOnlyList<TaskbarInfo>, bool>? Changed;
 
     /// <summary>Another window came to the foreground (used to re-assert Overlay mode).</summary>
     public event Action? ForegroundChanged;
@@ -67,31 +69,44 @@ internal sealed class TaskbarWatcher : IDisposable
 
     private void Check(bool force)
     {
-        var info = TaskbarLocator.TryLocate();
-        if (info is null)
+        var all = TaskbarLocator.TryLocateAll();
+        if (all.Count == 0)
         {
-            if (_last is not null)
+            if (_last.Count > 0)
                 Log.Info("Taskbar not found (is Explorer restarting?).");
-            _last = null;
+            _last = [];
+            _watchedWindows = [];
             return;
         }
 
-        EnsureLocationHook(info.TaskbarHwnd);
+        EnsureLocationHook(all[0].TaskbarHwnd);
 
         var fullscreen = TaskbarLocator.IsFullscreenAppRunning();
-        if (!force && info == _last && fullscreen == _lastFullscreen)
+        if (!force && all.SequenceEqual(_last) && fullscreen == _lastFullscreen)
             return;
 
-        if (_last is null || info.TaskbarHwnd != _last.TaskbarHwnd)
+        foreach (var info in all.Where(i => _last.All(l => l.TaskbarHwnd != i.TaskbarHwnd)))
         {
-            Log.Info($"Taskbar located: hwnd=0x{info.TaskbarHwnd:X} rect={info.Taskbar} notify={info.NotifyArea}" +
-                     $"{(info.NotifyAreaEstimated ? " (estimated)" : string.Empty)} buttons={info.TaskButtons}" +
-                     $" dpi={info.Dpi} autohide={info.AutoHide}");
+            Log.Info($"Taskbar located ({(info.IsPrimary ? "primary" : "secondary")}): hwnd=0x{info.TaskbarHwnd:X} " +
+                     $"rect={info.Taskbar} notify={info.NotifyArea}{(info.NotifyAreaEstimated ? " (estimated)" : string.Empty)} " +
+                     $"buttons={info.TaskButtons} dpi={info.Dpi} autohide={info.AutoHide}");
         }
 
-        _last = info;
+        _last = all;
+        _watchedWindows = all.SelectMany(TaskbarParts).ToHashSet();
         _lastFullscreen = fullscreen;
-        Changed?.Invoke(info, fullscreen);
+        Changed?.Invoke(all, fullscreen);
+    }
+
+    private static IEnumerable<IntPtr> TaskbarParts(TaskbarInfo info)
+    {
+        yield return info.TaskbarHwnd;
+        var notify = FindWindowEx(info.TaskbarHwnd, IntPtr.Zero, TaskbarLocator.NotifyAreaClass, null);
+        if (notify != IntPtr.Zero)
+            yield return notify;
+        var buttons = FindWindowEx(info.TaskbarHwnd, IntPtr.Zero, TaskbarLocator.TaskButtonsClass, null);
+        if (buttons != IntPtr.Zero)
+            yield return buttons;
     }
 
     private void EnsureLocationHook(IntPtr taskbar)
@@ -110,11 +125,8 @@ internal sealed class TaskbarWatcher : IDisposable
 
     private void OnLocationChange(IntPtr hook, uint evt, IntPtr hwnd, int idObject, int idChild, uint thread, uint time)
     {
-        if (idObject != OBJID_WINDOW || _last is null)
-            return;
-
-        // Explorer moves many windows (File Explorer ones too): only react to the taskbar's.
-        if (hwnd == _last.TaskbarHwnd || IsTaskbarPart(hwnd))
+        // Explorer moves many windows (File Explorer ones too): only react to the taskbars'.
+        if (idObject == OBJID_WINDOW && _watchedWindows.Contains(hwnd))
             ScheduleCheck();
     }
 
@@ -122,13 +134,6 @@ internal sealed class TaskbarWatcher : IDisposable
     {
         ForegroundChanged?.Invoke();
         ScheduleCheck(); // the full-screen state may have changed
-    }
-
-    private bool IsTaskbarPart(IntPtr hwnd)
-    {
-        var tb = _last!.TaskbarHwnd;
-        return hwnd == FindWindowEx(tb, IntPtr.Zero, TaskbarLocator.NotifyAreaClass, null)
-            || hwnd == FindWindowEx(tb, IntPtr.Zero, TaskbarLocator.TaskButtonsClass, null);
     }
 
     private void ScheduleCheck()
@@ -142,7 +147,7 @@ internal sealed class TaskbarWatcher : IDisposable
         if (_taskbarCreatedMsg != 0 && (uint)msg == _taskbarCreatedMsg)
         {
             Log.Info("TaskbarCreated received: Explorer restarted.");
-            _last = null;
+            _last = [];
             Check(force: true);
         }
         return IntPtr.Zero;

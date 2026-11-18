@@ -70,6 +70,23 @@ public sealed class DeviceMonitor : IDisposable
     /// Devices no provider could measure are dropped. Result is sorted by name.
     /// </summary>
     public static IReadOnlyList<Device> Merge(IEnumerable<Device> devices) =>
+        MergeSameNamedControllers(MergeById(devices))
+            .OrderBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+    /// <summary>
+    /// A Bluetooth controller can be reported both by its Bluetooth address and by Windows.Gaming.Input
+    /// under a different id; game controllers with the same name are treated as one device.
+    /// </summary>
+    private static IEnumerable<Device> MergeSameNamedControllers(IEnumerable<Device> devices) =>
+        devices
+            .GroupBy(d => d.Kind == DeviceKind.Gamepad ? "gamepad:" + d.Name.ToUpperInvariant() : "id:" + d.Id)
+            .Select(g => g
+                .OrderByDescending(d => d.Charging.HasValue)
+                .ThenByDescending(d => d.LastUpdated)
+                .First());
+
+    private static IEnumerable<Device> MergeById(IEnumerable<Device> devices) =>
         devices
             .GroupBy(d => d.Id, StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Any(d => d.BatteryPercent.HasValue))
@@ -83,9 +100,7 @@ public sealed class DeviceMonitor : IDisposable
                 return winner.Kind == DeviceKind.Other && knownKind != DeviceKind.Other
                     ? winner with { Kind = knownKind }
                     : winner;
-            })
-            .OrderBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
+            });
 
     private void OnProviderChanged(object? sender, EventArgs e) => RequestRefresh();
 

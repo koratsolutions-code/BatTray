@@ -30,6 +30,11 @@
         M10.5,7.75 L10.55,7.75 M12,6.5 L12.05,6.5
     </Geometry>
 
+    <!-- Charging bolt (filled, 10x16). -->
+    <Geometry x:Key="Icon.Charging">
+        M6,0.5 L1,9 L4.75,9 L3.5,15.5 L9,6.5 L5.25,6.5 Z
+    </Geometry>
+
     <!-- Generic: Bluetooth symbol. -->
     <Geometry x:Key="Icon.Other">
         M4.5,5 L11.5,11 L8,14 L8,2 L11.5,5 L4.5,11

@@ -1,0 +1,20 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+
+  <!--
+    Per-user MSI for BatTray. Built by tools/build-installer.ps1, which first publishes the app to
+    artifacts/publish and passes that folder as PublishDir. Not part of BatTray.sln on purpose, so a plain
+    `dotnet build` of the solution does not need a published app.
+
+    WiX 5 is used deliberately: it is MS-RL licensed. WiX 6+ adds the Open Source Maintenance Fee terms.
+  -->
+  <PropertyGroup>
+    <OutputName>BatTray-Setup</OutputName>
+    <Platform>x64</Platform>
+    <PublishDir Condition="'$(PublishDir)' == ''">..\artifacts\publish</PublishDir>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">0.1.0</ProductVersion>
+    <DefineConstants>PublishDir=$(PublishDir);ProductVersion=$(ProductVersion)</DefineConstants>
+    <!-- Per-user installs keep files under the user profile; these ICEs only apply to per-machine layouts. -->
+    <SuppressIces>ICE38;ICE64;ICE91</SuppressIces>
+  </PropertyGroup>
+
+</Project>

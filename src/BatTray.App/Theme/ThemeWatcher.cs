@@ -57,6 +57,12 @@ internal sealed class ThemeWatcher : IDisposable
         Set("Level.Critical", light ? "#C42B1C" : "#FF99A4");
         Set("Level.Unknown", light ? "#6E6E6E" : "#9E9E9E");
 
+        // Detail panel (Windows 11 flyout colours).
+        Set("Panel.Background", light ? "#F9F9F9" : "#2C2C2C");
+        Set("Panel.Border", light ? "#E0E0E0" : "#404040");
+        Set("Panel.Track", light ? "#E6E6E6" : "#454545");
+        Set("Panel.Secondary", light ? "#5F5F5F" : "#ABABAB");
+
         ThemeChanged?.Invoke();
     }
 

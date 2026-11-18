@@ -1,7 +1,8 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using BatTray.App.Diagnostics;
+using BatTray.App.Panel;
 using BatTray.App.Services;
 using BatTray.App.Taskbar;
 using BatTray.App.Theme;
@@ -19,6 +20,7 @@ namespace BatTray.App;
 ///   --mode child|overlay   taskbar anchoring strategy (default: child)
 ///   --demo                 simulated devices instead of real readings
 ///   --list-devices         log one reading of every provider and exit (diagnostics)
+///   --uninstall-cleanup    used by the uninstaller: disable start with Windows, close BatTray, exit
 /// </summary>
 public partial class App : Application
 {
@@ -26,8 +28,8 @@ public partial class App : Application
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan DemoPollInterval = TimeSpan.FromSeconds(5);
 
-    private readonly WidgetViewModel _viewModel = new();
     private readonly SettingsStore _settingsStore = new();
+    private readonly BatteryAlertTracker _alerts = new();
     private AppSettings _settings = new();
     private IReadOnlyList<Device> _devices = [];
     private IReadOnlyList<IBatteryProvider> _providers = [];
@@ -35,12 +37,13 @@ public partial class App : Application
     private Mutex? _singleInstance;
     private ThemeWatcher? _theme;
     private TaskbarWatcher? _watcher;
-    private TaskbarWidgetHost? _host;
+    private WidgetSet? _widgets;
     private TaskButtonsProbe? _buttonsProbe;
     private DeviceMonitor? _monitor;
     private TrayIconHost? _tray;
     private ContextMenu? _widgetMenu;
     private MenuPresenter? _menuPresenter;
+    private DetailPanel? _panel;
     private DeviceMenuActions? _menuActions;
 
     protected override async void OnStartup(StartupEventArgs e)
@@ -53,6 +56,13 @@ public partial class App : Application
         CoreDiagnostics.Sink = Log.Info;
 
         var demo = HasFlag(e.Args, "--demo");
+
+        if (HasFlag(e.Args, "--uninstall-cleanup"))
+        {
+            UninstallCleanup();
+            Shutdown();
+            return;
+        }
 
         if (HasFlag(e.Args, "--list-devices"))
         {
@@ -76,36 +86,35 @@ public partial class App : Application
         AutoStart.RefreshPathIfEnabled();
         _theme = new ThemeWatcher(Resources);
 
-        _menuActions = new DeviceMenuActions(SetDeviceHidden, SetStartWithWindows, SaveDiagnostics,
+        _menuActions = new DeviceMenuActions(SetDeviceHidden, SetStartWithWindows, SetLowBatteryAlerts, SaveDiagnostics,
             DiagnosticsReport.OpenLogFolder, () => Shutdown());
 
         _menuPresenter = new MenuPresenter();
 
-        // Taskbar widget: any click opens the shared menu.
+        // Taskbar widgets (one per taskbar): left click opens the detail panel, right click the shared menu.
+        _panel = new DetailPanel();
         _widgetMenu = new ContextMenu();
-        var view = new TaskbarWidgetView { DataContext = _viewModel };
-        view.MouseLeftButtonUp += (_, args) => { args.Handled = true; ShowMenu(_widgetMenu); };
-        view.MouseRightButtonUp += (_, args) => { args.Handled = true; ShowMenu(_widgetMenu); };
-        _host = new TaskbarWidgetHost(mode, view, _viewModel);
+        _widgets = new WidgetSet(mode, _settings.ShowOnAllTaskbars, ShowPanel, () => ShowMenu(_widgetMenu));
 
         // Tray icon: always reachable, even when the widget has no room on the taskbar.
         _tray = new TrayIconHost(new ContextMenu());
         _tray.MenuRequested += () => ShowMenu(_tray.Menu);
+        _tray.PanelRequested += ShowPanel;
         MenuPresenter.Track(_widgetMenu);
         MenuPresenter.Track(_tray.Menu);
         _tray.Show(_theme.IsLight);
 
         _watcher = new TaskbarWatcher();
-        _watcher.Changed += _host.Update;
-        _watcher.ForegroundChanged += _host.BringToFront;
+        _watcher.Changed += _widgets.UpdateTaskbars;
+        _watcher.ForegroundChanged += _widgets.BringToFront;
         _theme.ThemeChanged += () =>
         {
-            _host.Reposition();
+            _widgets.Reposition();
             _tray.SetTheme(_theme.IsLight);
         };
 
         _buttonsProbe = new TaskButtonsProbe(Dispatcher);
-        _buttonsProbe.Changed += _host.SetTaskButtonsRight;
+        _buttonsProbe.Changed += _widgets.SetTaskButtonsRight;
 
         _providers = CreateProviders(demo);
         _monitor = new DeviceMonitor(_providers, demo ? DemoPollInterval : PollInterval);
@@ -121,7 +130,14 @@ public partial class App : Application
     private static IReadOnlyList<IBatteryProvider> CreateProviders(bool demo) =>
         demo
             ? [new FakeBatteryProvider(simulateDrain: true)]
-            : [new BleGattBatteryProvider(), new BluetoothPnpBatteryProvider(), new HidDongleBatteryProvider()];
+            :
+            [
+                new BleGattBatteryProvider(),
+                new BluetoothPnpBatteryProvider(),
+                new HidDongleBatteryProvider(),
+                new GameControllerBatteryProvider(),
+                new SonyControllerBatteryProvider(),
+            ];
 
     private void OnDevicesChanged(object? sender, IReadOnlyList<Device> devices)
     {
@@ -130,14 +146,36 @@ public partial class App : Application
         {
             _devices = devices;
             RefreshUi();
+            AnnounceLowBatteries();
         });
+    }
+
+    private void AnnounceLowBatteries()
+    {
+        var due = _alerts.Evaluate(_devices, _settings.CriticalThreshold, _settings.LowThreshold);
+        if (!_settings.LowBatteryAlerts || _tray is null)
+            return;
+
+        foreach (var device in due)
+        {
+            Log.Info($"Low battery alert: {device.Name} at {device.BatteryPercent}%.");
+            _tray.Notify($"{device.Name}: {device.BatteryPercent}% battery", "Charge it or replace the batteries soon.");
+        }
+    }
+
+    private void SetLowBatteryAlerts(bool enabled)
+    {
+        _settings = _settings with { LowBatteryAlerts = enabled };
+        SaveSettings();
+        Log.Info($"Low battery alerts {(enabled ? "enabled" : "disabled")}.");
+        RefreshUi();
     }
 
     /// <summary>Pushes the current devices and settings to the widget, the tray icon and both menus. UI thread only.</summary>
     private void RefreshUi()
     {
         var visible = _devices.Where(d => !_settings.IsHidden(d.Id)).ToList();
-        _viewModel.Apply(visible, _settings.LowThreshold, _settings.CriticalThreshold);
+        _widgets?.SetDevices(visible, _settings.LowThreshold, _settings.CriticalThreshold);
 
         _tray?.SetDevices(_devices);
 
@@ -149,7 +187,18 @@ public partial class App : Application
         }
 
         // Text width may change (e.g. 100% → 99%): recompute the size once layout has run.
-        Dispatcher.BeginInvoke(() => _host?.Reposition(), DispatcherPriority.Loaded);
+        Dispatcher.BeginInvoke(() => _widgets?.Reposition(), DispatcherPriority.Loaded);
+    }
+
+    private void ShowPanel()
+    {
+        if (_panel is null || TaskbarLocator.TryLocateUnderCursor() is not { } taskbar)
+            return;
+
+        _panel.SetItems(_devices
+            .Select(d => DetailPanelItem.From(d, _settings.LowThreshold, _settings.CriticalThreshold, _settings.IsHidden(d.Id)))
+            .ToList());
+        _panel.ShowNearCursor(taskbar.Taskbar, taskbar.Monitor);
     }
 
     private void ShowMenu(ContextMenu menu)
@@ -231,6 +280,27 @@ public partial class App : Application
         }
     }
 
+    /// <summary>Run by the uninstaller: removes the start-with-Windows entry and closes running instances.</summary>
+    private static void UninstallCleanup()
+    {
+        Log.Info("--uninstall-cleanup: removing start-with-Windows entry and closing BatTray.");
+        AutoStart.SetEnabled(false);
+
+        var self = Environment.ProcessId;
+        foreach (var process in System.Diagnostics.Process.GetProcessesByName("BatTray").Where(p => p.Id != self))
+        {
+            try
+            {
+                process.Kill();
+                process.WaitForExit(3000);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Could not close BatTray process {process.Id}.", ex);
+            }
+        }
+    }
+
     private static bool HasFlag(string[] args, string flag) =>
         args.Any(a => a.Equals(flag, StringComparison.OrdinalIgnoreCase));
 
@@ -258,9 +328,10 @@ public partial class App : Application
             provider.Dispose();
         _buttonsProbe?.Dispose();
         _watcher?.Dispose();
-        _host?.Dispose();
+        _widgets?.Dispose();
         _tray?.Dispose();
         _menuPresenter?.Dispose();
+        _panel?.CloseForShutdown();
         _theme?.Dispose();
         if (_singleInstance is not null)
         {

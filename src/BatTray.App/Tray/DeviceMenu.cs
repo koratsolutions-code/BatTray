@@ -11,6 +11,7 @@ namespace BatTray.App.Tray;
 internal sealed record DeviceMenuActions(
     Action<string, bool> SetDeviceHidden,
     Action<bool> SetStartWithWindows,
+    Action<bool> SetLowBatteryAlerts,
     Action SaveDiagnostics,
     Action OpenLogFolder,
     Action Exit);
@@ -46,7 +47,7 @@ internal static class DeviceMenu
                     header.Children.Add(icon);
                 header.Children.Add(new TextBlock
                 {
-                    Text = $"{device.Name}  —  {(device.BatteryPercent is { } p ? $"{p}%" : "?")}",
+                    Text = $"{device.Name}  —  {(device.BatteryPercent is { } p ? $"{p}%" : "?")}{(device.Charging == true ? "  ⚡ charging" : string.Empty)}",
                     Margin = new Thickness(8, 0, 0, 0),
                     VerticalAlignment = VerticalAlignment.Center,
                 });
@@ -69,6 +70,15 @@ internal static class DeviceMenu
         var autoStart = new MenuItem { Header = "Start with Windows", IsCheckable = true, IsChecked = startWithWindows };
         autoStart.Click += (_, _) => actions.SetStartWithWindows(autoStart.IsChecked);
         menu.Items.Add(autoStart);
+
+        var alerts = new MenuItem
+        {
+            Header = $"Low battery alerts (below {settings.CriticalThreshold}%)",
+            IsCheckable = true,
+            IsChecked = settings.LowBatteryAlerts,
+        };
+        alerts.Click += (_, _) => actions.SetLowBatteryAlerts(alerts.IsChecked);
+        menu.Items.Add(alerts);
 
         var diagnostics = new MenuItem { Header = "Save diagnostics report…", ToolTip = "Lists every device found, including unsupported receivers" };
         diagnostics.Click += (_, _) => actions.SaveDiagnostics();

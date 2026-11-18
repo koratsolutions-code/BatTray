@@ -51,6 +51,11 @@
                                    FontSize="12"
                                    Text="{Binding PercentText}"
                                    Foreground="{DynamicResource Level.Good}" />
+                        <Path Width="10" Height="16" Margin="3,0,0,0" Stretch="Uniform"
+                              VerticalAlignment="Center"
+                              Data="{StaticResource Icon.Charging}"
+                              Fill="{DynamicResource Level.Good}"
+                              Visibility="{Binding IsCharging, Converter={StaticResource BoolToVisibility}}" />
                     </StackPanel>
 
                     <DataTemplate.Triggers>

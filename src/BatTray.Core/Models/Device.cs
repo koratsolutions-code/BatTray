@@ -7,10 +7,12 @@ namespace BatTray.Core.Models;
 /// <param name="BatteryPercent">0–100, or <c>null</c> when unknown.</param>
 /// <param name="LastUpdated">Time of the last reading.</param>
 /// <param name="Source">Name of the provider that produced the reading.</param>
+/// <param name="Charging">True while charging, false when known to be discharging, null when unknown.</param>
 public sealed record Device(
     string Id,
     string Name,
     DeviceKind Kind,
     int? BatteryPercent,
     DateTimeOffset LastUpdated,
-    string Source = "");
+    string Source = "",
+    bool? Charging = null);

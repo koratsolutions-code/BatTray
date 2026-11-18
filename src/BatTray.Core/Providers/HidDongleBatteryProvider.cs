@@ -35,8 +35,12 @@ public sealed class HidDongleBatteryProvider : IBatteryProvider, IDiagnosticsSou
     public static IReadOnlyList<IHidBatteryProtocol> DefaultProtocols() =>
     [
         new LogitechHidppProtocol(),
-        new StandardHidBatteryProtocol(),
+        new RazerProtocol(),
+        new SteelSeriesProtocol(),
+        new CorsairProtocol(),
+        new HyperXProtocol(),
         new GetPowerProtocol(),
+        new StandardHidBatteryProtocol(),
     ];
 
     public string Name => "USB receiver";
@@ -82,7 +86,7 @@ public sealed class HidDongleBatteryProvider : IBatteryProvider, IDiagnosticsSou
                     var id = reading.SubId is null ? receiver.Id : $"{receiver.Id}:{reading.SubId}";
                     var name = reading.Name ?? receiver.DisplayName;
                     var kind = reading.Kind ?? DeviceKindClassifier.Resolve(receiver.InferKind(), name);
-                    var device = new Device(id, name, kind, percent, now, $"{Name} · {protocol.Name}");
+                    var device = new Device(id, name, kind, percent, now, $"{Name} · {protocol.Name}", reading.Charging);
                     _lastGood[id] = device;
                     answered.Add(id);
                     result.Add(device);

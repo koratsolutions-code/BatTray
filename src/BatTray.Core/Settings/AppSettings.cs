@@ -16,6 +16,12 @@ public sealed record AppSettings
     /// <summary>Below this percentage the level is shown as critical (red).</summary>
     public int CriticalThreshold { get; init; } = BatteryLevelPalette.DefaultCriticalThreshold;
 
+    /// <summary>Show the widget on the taskbar of every monitor (otherwise only on the primary one).</summary>
+    public bool ShowOnAllTaskbars { get; init; } = true;
+
+    /// <summary>Show a Windows notification when a device reaches the critical level.</summary>
+    public bool LowBatteryAlerts { get; init; } = true;
+
     public bool IsHidden(string deviceId) =>
         HiddenDeviceIds.Contains(deviceId, StringComparer.OrdinalIgnoreCase);
 

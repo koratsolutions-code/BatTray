@@ -1,0 +1,64 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <!--
+    UpgradeCode must never change: it is how new versions replace old ones.
+    Scope="perUser": no administrator rights; files go to %LocalAppData%\Programs\BatTray.
+  -->
+  <Package Name="BatTray"
+           Manufacturer="Korat Solutions"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="7E3B6C1A-9F2D-4A57-8C1E-4B2D6F0A9C31"
+           Scope="perUser"
+           Compressed="yes">
+
+    <SummaryInformation Description="BatTray — battery levels of your wireless peripherals on the Windows taskbar" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of BatTray is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="BatTrayIcon" SourceFile="..\src\BatTray.App\Assets\BatTray.ico" />
+    <Property Id="ARPPRODUCTICON" Value="BatTrayIcon" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/koratsolutions-code/BatTray" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+
+    <!-- %LocalAppData%\Programs\BatTray: the standard per-user location (no admin rights needed). -->
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="UserProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="BatTray" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <Feature Id="Main" Title="BatTray">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.PublishDir)\**" />
+    </ComponentGroup>
+
+    <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder" Guid="D2A4C6E8-1B3D-4F5A-9C7E-2A4B6C8D0E1F">
+      <Shortcut Id="BatTrayShortcut"
+                Name="BatTray"
+                Description="Battery levels of your wireless peripherals on the taskbar"
+                Target="[INSTALLFOLDER]BatTray.exe"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="BatTrayIcon" />
+      <RegistryValue Root="HKCU" Key="Software\KoratSolutions\BatTray" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+      <RemoveFolder Id="RemoveInstallFolder" Directory="INSTALLFOLDER" On="uninstall" />
+    </Component>
+
+    <!-- Start BatTray when the installation finishes (not on uninstall or repair). -->
+    <CustomAction Id="LaunchBatTray" Directory="INSTALLFOLDER" ExeCommand="&quot;[INSTALLFOLDER]BatTray.exe&quot;" Return="asyncNoWait" Execute="immediate" />
+
+    <!-- On uninstall: close BatTray and remove its "start with Windows" entry. -->
+    <CustomAction Id="CleanupBatTray" Directory="INSTALLFOLDER" ExeCommand="&quot;[INSTALLFOLDER]BatTray.exe&quot; --uninstall-cleanup" Return="ignore" Execute="immediate" />
+
+    <InstallExecuteSequence>
+      <Custom Action="CleanupBatTray" Before="InstallValidate" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="LaunchBatTray" After="InstallFinalize" Condition="NOT Installed AND NOT REMOVE" />
+    </InstallExecuteSequence>
+  </Package>
+</Wix>

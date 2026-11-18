@@ -7,25 +7,89 @@ BatTray muestra el nivel de batería de tus periféricos (ratón, teclado, auric
 en la barra de tareas de Windows: el icono del dispositivo junto a su porcentaje.
 
 ```
-[🖱 50%]  [🎧 80%]  [⌨ 12%]   ⌃  🔊  🔋97%   13:45
+[🖱 50%]  [🎧 80%⚡]  [⌨ 12%]   ⌃  🔊  🔋97%   13:45
 ```
 
-## Requisitos
-- Windows 11 (Windows 10 2004+ como mínimo)
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+## Funciones
+- **Widget en la barra de tareas** con el icono y el porcentaje de cada dispositivo (verde / ámbar / rojo),
+  en la barra de cada monitor. Si no hay sitio, se ocultan primero los que tienen más batería; nunca tapa
+  los botones de las apps.
+- **Panel de detalle** (clic izquierdo en el widget o en el icono de la bandeja): todos los dispositivos con
+  barra de nivel, estado de carga, última lectura y origen.
+- **Alertas de batería baja**: una notificación de Windows por descarga cuando un dispositivo llega al nivel crítico.
+- **Icono y menú en la bandeja** (clic derecho): elegir qué dispositivos mostrar, iniciar con Windows,
+  activar/desactivar alertas, informe de diagnóstico, carpeta de logs.
+- Temas claro y oscuro, cualquier escalado DPI, barra que se oculta sola, apps a pantalla completa y reinicios del Explorador.
 
-## Estructura
+## Instalación
+Descarga y ejecuta `BatTray-Setup-<versión>.msi`. Se instala **por usuario** (sin permisos de administrador)
+en `%LocalAppData%\Programs\BatTray`, crea un acceso en el menú Inicio y arranca BatTray. Se desinstala desde
+*Configuración › Aplicaciones*; el desinstalador también quita el inicio con Windows.
+
+## Dispositivos soportados
+| Fuente | Dispositivos | Cómo |
+|---|---|---|
+| Bluetooth LE | Ratones, teclados, auriculares y mandos modernos | Servicio GATT de batería (0x180F) |
+| Bluetooth (Windows) | Auriculares clásicos y cualquier dispositivo que Windows reporte | Propiedad PnP `DEVPKEY_Bluetooth_Battery`, el valor de Configuración |
+| Mandos de juego | Mandos Xbox (USB, adaptador inalámbrico Xbox, Bluetooth) y otros que Windows reporte | Informe de batería de `Windows.Gaming.Input` |
+| Mandos PlayStation | DualShock 4, DualSense, DualSense Edge (USB y Bluetooth) | Campo de batería del report de entrada normal |
+| Receptores USB (2,4 GHz) | Ver abajo | Protocolos HID enchufables |
+
+### Receptores de 2,4 GHz
+A diferencia de Bluetooth, los dongles de 2,4 GHz no tienen un estándar común de batería: cada fabricante usa
+su propio protocolo. BatTray usa un catálogo de **protocolos enchufables** (`IHidBatteryProtocol`):
+
+| Protocolo | Dispositivos |
+|---|---|
+| Logitech HID++ 2.0 (0x1004, 0x1000, 0x1001) | Receptores Unifying, Bolt, Lightspeed (hasta 6 dispositivos cada uno) y Logitech por USB |
+| Razer (feature report de 90 bytes) | Ratones y teclados inalámbricos (receptor y cable) |
+| SteelSeries | Arctis 1/7/7+/Pro/7X/7P, Arctis Nova 3P/5/7, Aerox 3/5/9, Prime, Rival 3 Wireless, Rival 650 |
+| Corsair | Auriculares Void/HS antiguos y dispositivos Bragi (Dark Core, Ironclaw, Harpoon, M65/M75, K57/K70, Slipstream, Virtuoso, HS80…) |
+| HyperX | Cloud Flight, Cloud Alpha Wireless, Cloud II Wireless, Cloud Alpha 2, Pulsefire Haste 2 |
+| GetPower (Compx/Areson/Nordic) | Redragon (25A7:FA07/FA08), ATK, VXE, VGN, Dareu, Zaopin, Scyrox, G-Wolves |
+| Batería HID estándar (0x06/0x20, 0x85) | Cualquier receptor que siga la especificación HID |
+
+**Seguridad:** solo se envían consultas de lectura, y solo a receptores que un protocolo reconoce con certeza.
+Nunca se usan comandos que cambien ajustes o el modo del dongle. A los receptores no reconocidos nunca se les
+escribe nada; usa **Save diagnostics report…** (o `BatTray.exe --list-devices`) para registrar su estructura
+HID y poder añadirlos.
+
+> Los protocolos de Razer, SteelSeries, Corsair, HyperX y PlayStation están implementados a partir de
+> documentación pública y drivers de código abierto y cubiertos con tests, pero aún no se han verificado con hardware real.
+
+## Ajustes
+Se gestionan desde el menú y se guardan en `%AppData%\KoratSolutions\BatTray\settings.json`:
+
+| Clave | Por defecto | Significado |
+|---|---|---|
+| `hiddenDeviceIds` | `[]` | Dispositivos que no se muestran en la barra |
+| `lowThreshold` | `30` | Por debajo de este %, el nivel se pone ámbar |
+| `criticalThreshold` | `15` | Por debajo de este %, se pone rojo y salta la alerta |
+| `lowBatteryAlerts` | `true` | Notificación de Windows al llegar al nivel crítico |
+| `showOnAllTaskbars` | `true` | Widget en la barra de cada monitor (requiere reiniciar BatTray) |
+
+Logs: `%LocalAppData%\KoratSolutions\BatTray\logs`.
+
+## Desarrollo
+Requisitos: Windows 11 (10 2004+), [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0).
+
 | Ruta | Contenido |
 |---|---|
-| `src/BatTray.Core` | Modelos, proveedores de batería (Bluetooth LE / clásico), monitor de dispositivos, ajustes |
-| `src/BatTray.App` | App WPF: widget de barra de tareas, icono de bandeja |
-| `tests/BatTray.Tests` | Tests unitarios (xUnit) de `BatTray.Core` |
+| `src/BatTray.Core` | Modelos, proveedores (Bluetooth, mandos, receptores HID), protocolos HID, monitor, ajustes |
+| `src/BatTray.App` | App WPF: widgets de barra, panel de detalle, icono de bandeja, menús |
+| `tests/BatTray.Tests` | Tests unitarios (xUnit) |
+| `installer/` | MSI por usuario con WiX 5 |
+| `tools/` | `generate-icon.ps1` (icono de marca), `build-installer.ps1` |
 
-## Compilar y ejecutar
 ```bash
 dotnet build
 dotnet test
 dotnet run --project src/BatTray.App
+```
+
+Generar el instalador (publica una build autocontenida y luego el MSI en `artifacts/`):
+```bash
+pwsh tools/build-installer.ps1
 ```
 
 ### Opciones de línea de comandos
@@ -33,50 +97,6 @@ dotnet run --project src/BatTray.App
 |---|---|
 | `--mode child` | *(por defecto)* El widget es una ventana hija de la barra de tareas. |
 | `--mode overlay` | Ventana emergente encima de la barra (estrategia alternativa). |
-| `--demo` | Muestra dispositivos simulados en lugar de leer baterías reales. |
-
-## Uso
-Haz clic derecho sobre el widget, o clic en el icono de BatTray en el área de notificación (Windows 11 deja
-los iconos nuevos en el menú `^`; arrástralo a la barra o actívalo en *Configuración › Personalización ›
-Barra de tareas › Otros iconos de la bandeja del sistema*). El menú permite:
-
-- **Elegir qué dispositivos se muestran** en la barra (marcar / desmarcar cada uno).
-- **Start with Windows**: iniciar con Windows (por usuario, sin permisos de administrador).
-- **Save diagnostics report…**: un archivo de texto con todos los dispositivos encontrados, incluidos los receptores de 2,4 GHz no soportados.
-- **Open log folder** y **Exit BatTray**.
-
-Si no caben todos los dispositivos en la barra, se ocultan primero los que tienen más batería.
-
-### Ajustes
-Se guardan en `%AppData%\KoratSolutions\BatTray\settings.json`:
-
-| Clave | Por defecto | Significado |
-|---|---|---|
-| `hiddenDeviceIds` | `[]` | Dispositivos que no se muestran en la barra (se gestiona desde el menú) |
-| `lowThreshold` | `30` | Por debajo de este %, el nivel se pone ámbar |
-| `criticalThreshold` | `15` | Por debajo de este %, el nivel se pone rojo |
-
-Los logs se guardan en `%LocalAppData%\KoratSolutions\BatTray\logs`.
-
-## Fuentes de batería soportadas
-| Fuente | Dispositivos | Cómo |
-|---|---|---|
-| Bluetooth LE | Ratones, teclados y auriculares modernos | Servicio GATT de batería (0x180F) |
-| Bluetooth (Windows) | Auriculares clásicos y cualquier dispositivo que Windows reporte | Propiedad PnP `DEVPKEY_Bluetooth_Battery`, el mismo valor que muestra Configuración |
-| Receptor USB (2,4 GHz) | Dongles con un protocolo conocido (ver abajo) | Protocolos HID enchufables |
-
-### Receptores de 2,4 GHz
-A diferencia de Bluetooth, los dongles de 2,4 GHz no tienen un estándar común de batería: cada fabricante
-de chips usa su propio protocolo. Por eso BatTray usa un catálogo de **protocolos enchufables** (`IHidBatteryProtocol`):
-
-| Protocolo | Dispositivos |
-|---|---|
-| Logitech HID++ 2.0 (features 0x1004, 0x1000, 0x1001) | Receptores Unifying, Bolt y Lightspeed (hasta 6 dispositivos cada uno) y dispositivos Logitech por USB |
-| Batería HID estándar (Battery Strength 0x06/0x20, Battery System 0x85) | Cualquier receptor que siga la especificación HID |
-| GetPower (Compx/Areson/Nordic) | Redragon (25A7:FA07/FA08), ATK, VXE, VGN, Dareu, Zaopin, Scyrox, G-Wolves… |
-
-Solo se envían consultas de lectura, y solo a receptores que un protocolo reconoce con certeza. A los receptores
-no reconocidos nunca se les escribe nada; ejecuta `BatTray.exe --list-devices` para registrar su estructura HID y poder añadirlos.
-
-## Estado
-🚧 En desarrollo — fase 3: icono de bandeja, ajustes e inicio con Windows.
+| `--demo` | Dispositivos simulados en lugar de lecturas reales. |
+| `--list-devices` | Registra una lectura de cada proveedor (y la estructura HID de cada receptor) y cierra. |
+| `--uninstall-cleanup` | Lo usa el desinstalador: quita el inicio con Windows y cierra BatTray. |

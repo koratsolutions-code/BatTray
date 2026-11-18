@@ -55,6 +55,22 @@ public class DeviceMonitorTests
     }
 
     [Fact]
+    public void Merge_SameNamedControllers_BecomeOne_PreferringChargingInfo()
+    {
+        var merged = DeviceMonitor.Merge(
+        [
+            new Device("bt:AABBCCDDEEFF", "Xbox Wireless Controller", DeviceKind.Gamepad, 60, T0, "Bluetooth LE"),
+            new Device("gip:{123}", "Xbox Wireless Controller", DeviceKind.Gamepad, 61, T0, "Game controller", Charging: false),
+            new Device("bt:111111111111", "Mouse", DeviceKind.Mouse, 50, T0),
+            new Device("bt:222222222222", "Mouse", DeviceKind.Mouse, 40, T0),
+        ]);
+
+        Assert.Equal(3, merged.Count); // identical mouse names are NOT merged
+        var controller = Assert.Single(merged, d => d.Kind == DeviceKind.Gamepad);
+        Assert.Equal("Game controller", controller.Source);
+    }
+
+    [Fact]
     public void Merge_SortsByName()
     {
         var merged = DeviceMonitor.Merge(
