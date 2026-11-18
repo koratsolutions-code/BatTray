@@ -11,6 +11,7 @@ namespace BatTray.Core.Estimation;
 public sealed class EstimatedBatteryProvider : IBatteryProvider
 {
     public const string SourceName = "Estimated from usage";
+    public const string FixedSourceName = "Set manually";
 
     private readonly BatteryEstimator _estimator;
     private readonly Func<IReadOnlyList<HidReceiver>> _receivers;
@@ -38,7 +39,8 @@ public sealed class EstimatedBatteryProvider : IBatteryProvider
         var now = _time.GetUtcNow();
         IReadOnlyList<Device> devices = estimates
             .Where(e => present.Contains(e.DeviceId))
-            .Select(e => new Device(e.DeviceId, e.Name, e.Kind, BatteryEstimator.Percent(e, now), now, SourceName, Estimated: true))
+            .Select(e => new Device(e.DeviceId, e.Name, e.Kind, BatteryEstimator.Percent(e, now), now,
+                e.IsFixed ? FixedSourceName : SourceName, Estimated: true))
             .ToList();
         return Task.FromResult(devices);
     }

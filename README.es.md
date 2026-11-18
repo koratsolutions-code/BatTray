@@ -77,15 +77,20 @@ Todo se configura desde el menú de la bandeja (clic derecho en el icono de BatT
 - **Save diagnostics report…** y **Open log folder**: útiles para pedir soporte.
 - **About BatTray**: versión, web y licencia.
 
-### Estimar la batería por tiempo de uso
-Algunos dispositivos no envían su nivel de batería al PC, así que nada puede leerlo. Para ellos, abre
-**Estimate battery from usage** en el menú, elige el dispositivo e indica su autonomía (horas de uso con una carga
-completa, según el manual) y su carga actual. A partir de ahí:
-- Un auricular cuenta como en uso mientras suena audio por él y durante los 10 minutos siguientes.
-- Un ratón o teclado cuenta como en uso mientras lo usas y durante los 10 minutos siguientes.
-- El nivel se muestra con `~` (por ejemplo `~62%`). Usa **I just charged it** después de cada carga.
+### Dispositivos sin datos de batería
+Algunos dispositivos no envían su nivel de batería al PC, así que nada puede leerlo. Aparecen en el menú en
+**Devices without battery data**, con dos opciones:
 
-Es una aproximación: la batería real depende del volumen, las luces y la edad de la batería.
+- **Set level manually**: elige 100 / 75 / 50 / 25 % u *Other…*. El nivel se queda fijo hasta que lo cambies.
+- **Estimate from usage**: indica la autonomía (horas de uso con una carga completa, según el manual) y la carga
+  actual. A partir de ahí:
+  - Un auricular cuenta como en uso mientras suena audio por él y durante los 10 minutos siguientes.
+  - Un ratón o teclado cuenta como en uso mientras lo usas y durante los 10 minutos siguientes.
+
+Ambos se muestran con `~` (por ejemplo `~62%`). El submenú de cada dispositivo tiene **Set current level**,
+**I just charged it**, el cambio entre los dos modos y **Remove**.
+
+La estimación es una aproximación: la batería real depende del volumen, las luces y la edad de la batería.
 Las estimaciones se guardan en `%AppData%\KoratSolutions\BatTray\estimates.json`.
 
 El nivel se pone ámbar por debajo del 30% y rojo por debajo del 15%, que es cuando salta la alerta.

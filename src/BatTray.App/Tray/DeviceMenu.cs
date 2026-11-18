@@ -19,6 +19,8 @@ internal sealed record DeviceMenuActions(
     Action<string> ConfigureEstimate,
     Action<string> MarkCharged,
     Action<string> StopEstimate,
+    Action<string, int?> SetLevel,
+    Action<string> UseFixedLevel,
     Action Exit);
 
 /// <summary>A device that does not report its battery: it can be estimated from usage time.</summary>
@@ -116,33 +118,72 @@ internal static class DeviceMenu
     {
         var root = new MenuItem
         {
-            Header = "Estimate battery from usage",
-            ToolTip = "For devices that do not report their battery: BatTray counts how long you use them",
+            Header = "Devices without battery data",
+            ToolTip = "Estimate their battery from usage time, or set the level yourself",
         };
         foreach (var candidate in candidates)
         {
             var id = candidate.Id;
             if (candidate.Estimate is not { } estimate)
             {
-                var start = new MenuItem { Header = $"{candidate.Name}…" };
-                start.Click += (_, _) => actions.ConfigureEstimate(id);
+                var start = new MenuItem { Header = candidate.Name };
+                var fromUsage = new MenuItem { Header = "Estimate from usage…" };
+                fromUsage.Click += (_, _) => actions.ConfigureEstimate(id);
+                start.Items.Add(fromUsage);
+                start.Items.Add(CreateLevelMenu("Set level manually", id, actions));
                 root.Items.Add(start);
                 continue;
             }
 
             var device = new MenuItem { Header = $"{estimate.Name} (~{BatteryEstimator.Percent(estimate, DateTimeOffset.UtcNow)}%)" };
+            device.Items.Add(CreateLevelMenu("Set current level", id, actions));
             var charged = new MenuItem { Header = "I just charged it" };
             charged.Click += (_, _) => actions.MarkCharged(id);
-            var change = new MenuItem { Header = $"Battery life: {estimate.RatedHours:0.#} h…" };
-            change.Click += (_, _) => actions.ConfigureEstimate(id);
-            var stop = new MenuItem { Header = "Stop estimating" };
-            stop.Click += (_, _) => actions.StopEstimate(id);
             device.Items.Add(charged);
-            device.Items.Add(change);
+            device.Items.Add(new Separator());
+
+            var usageMode = new MenuItem
+            {
+                Header = estimate.IsFixed ? "Estimate from usage…" : $"Estimate from usage ({estimate.RatedHours:0.#} h battery life)…",
+                IsCheckable = true,
+                IsChecked = !estimate.IsFixed,
+                ToolTip = "The level goes down while you use the device",
+            };
+            usageMode.Click += (_, _) => actions.ConfigureEstimate(id);
+            var fixedMode = new MenuItem
+            {
+                Header = "Fixed level",
+                IsCheckable = true,
+                IsChecked = estimate.IsFixed,
+                ToolTip = "The level stays where you set it",
+            };
+            fixedMode.Click += (_, _) => actions.UseFixedLevel(id);
+            device.Items.Add(usageMode);
+            device.Items.Add(fixedMode);
+            device.Items.Add(new Separator());
+
+            var stop = new MenuItem { Header = "Remove" };
+            stop.Click += (_, _) => actions.StopEstimate(id);
             device.Items.Add(stop);
             root.Items.Add(device);
         }
         return root;
+    }
+
+    /// <summary>Quick levels (100 / 75 / 50 / 25 %) plus "Other…".</summary>
+    private static MenuItem CreateLevelMenu(string header, string id, DeviceMenuActions actions)
+    {
+        var menu = new MenuItem { Header = header };
+        foreach (var level in new[] { 100, 75, 50, 25 })
+        {
+            var item = new MenuItem { Header = $"{level}%" };
+            item.Click += (_, _) => actions.SetLevel(id, level);
+            menu.Items.Add(item);
+        }
+        var other = new MenuItem { Header = "Other…" };
+        other.Click += (_, _) => actions.SetLevel(id, null);
+        menu.Items.Add(other);
+        return menu;
     }
 
     private static UIElement? CreateIcon(DeviceKind kind)

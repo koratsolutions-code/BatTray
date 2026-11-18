@@ -76,15 +76,20 @@ Everything is set from the tray menu (right-click the BatTray icon or the widget
 - **Save diagnostics report…** and **Open log folder**: useful when asking for support.
 - **About BatTray**: version, website and license.
 
-### Estimate battery from usage
-Some devices do not send their battery level to the PC at all, so nothing can read it. For those, open
-**Estimate battery from usage** in the menu, pick the device and enter its battery life (hours of use on a full
-charge, from the manual) and its current charge. From then on:
-- A headset counts as in use while sound plays through it, and for 10 minutes after.
-- A mouse or keyboard counts as in use while you use it, and for 10 minutes after.
-- The level is shown with a `~` (for example `~62%`). Use **I just charged it** after each charge.
+### Devices without battery data
+Some devices do not send their battery level to the PC at all, so nothing can read it. They are listed under
+**Devices without battery data** in the menu, with two options:
 
-It is an approximation: the real battery depends on volume, lighting and the battery's age.
+- **Set level manually**: pick 100 / 75 / 50 / 25 % or *Other…*. The level stays fixed until you change it.
+- **Estimate from usage**: enter the battery life (hours of use on a full charge, from the manual) and the
+  current charge. From then on:
+  - A headset counts as in use while sound plays through it, and for 10 minutes after.
+  - A mouse or keyboard counts as in use while you use it, and for 10 minutes after.
+
+Both are shown with a `~` (for example `~62%`). Each device's submenu has **Set current level**,
+**I just charged it**, a switch between the two modes and **Remove**.
+
+An estimate is an approximation: the real battery depends on volume, lighting and the battery's age.
 Estimates are stored in `%AppData%\KoratSolutions\BatTray\estimates.json`.
 
 The level turns amber below 30% and red below 15%, which is also when the alert is shown.

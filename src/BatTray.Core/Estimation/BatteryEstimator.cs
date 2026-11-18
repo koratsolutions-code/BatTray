@@ -10,6 +10,9 @@ namespace BatTray.Core.Estimation;
 /// <param name="UsedHours">Hours of use counted since the last full charge.</param>
 /// <param name="ChargedAt">When the user last marked it as charged (or set the level).</param>
 /// <param name="LastActivity">Last time the device was seen in use.</param>
+/// <param name="FixedPercent">
+/// When set, the level is fixed by the user at this value and usage is not counted ("fixed level" mode).
+/// </param>
 public sealed record BatteryEstimate(
     string DeviceId,
     string Name,
@@ -17,10 +20,15 @@ public sealed record BatteryEstimate(
     double RatedHours,
     double UsedHours,
     DateTimeOffset ChargedAt,
-    DateTimeOffset? LastActivity = null);
+    DateTimeOffset? LastActivity = null,
+    int? FixedPercent = null)
+{
+    public bool IsFixed => FixedPercent is not null;
+}
 
 /// <summary>
-/// Estimates battery levels from usage time. Each activity signal counts the device as in use for
+/// Estimates battery levels from usage time, or keeps a level fixed by the user.
+/// In usage mode, each activity signal counts the device as in use for
 /// <see cref="ActivityTail"/> afterwards (it stays on while silent or idle), and overlapping periods are counted
 /// once. Level = 100 % × (1 − used hours / rated hours). Thread-safe.
 /// </summary>
@@ -79,13 +87,39 @@ public sealed class BatteryEstimator
     }
 
     /// <summary>Marks the device as fully charged.</summary>
-    public void MarkCharged(string deviceId, DateTimeOffset now)
+    public void MarkCharged(string deviceId, DateTimeOffset now) => SetLevel(deviceId, 100, now);
+
+    /// <summary>
+    /// Sets the current level of an existing estimate, keeping its mode: a fixed level takes the new value,
+    /// a usage estimate continues from it.
+    /// </summary>
+    public void SetLevel(string deviceId, int percent, DateTimeOffset now)
     {
+        var p = Math.Clamp(percent, 0, 100);
         lock (_lock)
         {
             if (!_estimates.TryGetValue(deviceId, out var e))
                 return;
-            _estimates[deviceId] = e with { UsedHours = 0, ChargedAt = now, LastActivity = null };
+            _estimates[deviceId] = e.IsFixed
+                ? e with { FixedPercent = p, ChargedAt = now }
+                : e with { UsedHours = e.RatedHours * (100 - p) / 100.0, ChargedAt = now, LastActivity = null };
+            IsDirty = true;
+        }
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Fixes the level of a device at <paramref name="percent"/> (no usage counting). Creates the entry when the
+    /// device has none, or converts a usage estimate.
+    /// </summary>
+    public void SetFixed(string deviceId, string name, DeviceKind kind, int percent, DateTimeOffset now)
+    {
+        var p = Math.Clamp(percent, 0, 100);
+        lock (_lock)
+        {
+            _estimates[deviceId] = _estimates.TryGetValue(deviceId, out var e)
+                ? e with { FixedPercent = p, ChargedAt = now, LastActivity = null }
+                : new BatteryEstimate(deviceId, name, kind, DefaultRatedHours(kind), 0, now, null, p);
             IsDirty = true;
         }
         Changed?.Invoke(this, EventArgs.Empty);
@@ -108,7 +142,7 @@ public sealed class BatteryEstimator
     {
         lock (_lock)
         {
-            if (!_estimates.TryGetValue(deviceId, out var e))
+            if (!_estimates.TryGetValue(deviceId, out var e) || e.IsFixed)
                 return;
             var used = e.UsedHours;
             if (e.LastActivity is { } last)
@@ -141,6 +175,8 @@ public sealed class BatteryEstimator
 
     public static int Percent(BatteryEstimate e, DateTimeOffset now)
     {
+        if (e.FixedPercent is { } fixedPercent)
+            return Math.Clamp(fixedPercent, 0, 100);
         var remaining = 1 - UsedHoursAt(e, now) / e.RatedHours;
         return (int)Math.Clamp(Math.Round(remaining * 100), 0, 100);
     }

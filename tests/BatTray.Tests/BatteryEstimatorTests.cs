@@ -182,3 +182,59 @@ public class BatteryEstimatorTests
     public void ReceiverId_RejectsOtherIds(string id) =>
         Assert.False(ReceiverId.TryParse(id, out _, out _, out _));
 }
+
+public class FixedLevelTests
+{
+    private const string Id = "usb:31511025:fcc45fde04c25b0b8097cb00db18d985";
+    private static readonly DateTimeOffset T0 = new(2026, 11, 18, 12, 0, 0, TimeSpan.Zero);
+
+    [Fact]
+    public void SetFixed_CreatesAFixedLevelThatIgnoresUsage()
+    {
+        var estimator = new BatteryEstimator();
+        estimator.SetFixed(Id, "Klip", DeviceKind.Mouse, 60, T0);
+        for (var t = T0; t <= T0.AddHours(5); t = t.AddMinutes(5))
+            estimator.RecordActivity(Id, t);
+
+        Assert.Equal(60, estimator.EstimatePercent(Id, T0.AddHours(5)));
+        Assert.True(estimator.Get(Id)!.IsFixed);
+    }
+
+    [Fact]
+    public void SetLevel_KeepsTheMode()
+    {
+        var estimator = new BatteryEstimator();
+        estimator.Configure(Id, "Klip", DeviceKind.Mouse, 10, 100, T0);
+        estimator.SetLevel(Id, 50, T0);
+        Assert.Equal(50, estimator.EstimatePercent(Id, T0));
+        Assert.False(estimator.Get(Id)!.IsFixed);
+
+        // Usage keeps draining from the new level: 1 h of 10 h → 40 %.
+        for (var t = T0; t <= T0.AddMinutes(50); t = t.AddMinutes(5))
+            estimator.RecordActivity(Id, t);
+        Assert.Equal(40, estimator.EstimatePercent(Id, T0.AddHours(2)));
+
+        estimator.SetFixed(Id, "Klip", DeviceKind.Mouse, 30, T0);
+        estimator.SetLevel(Id, 80, T0);
+        Assert.Equal(80, estimator.EstimatePercent(Id, T0.AddDays(3)));
+        Assert.True(estimator.Get(Id)!.IsFixed);
+    }
+
+    [Fact]
+    public void Configure_TurnsAFixedLevelBackIntoAUsageEstimate()
+    {
+        var estimator = new BatteryEstimator();
+        estimator.SetFixed(Id, "Klip", DeviceKind.Mouse, 60, T0);
+        estimator.Configure(Id, "Klip", DeviceKind.Mouse, 100, 60, T0);
+        Assert.False(estimator.Get(Id)!.IsFixed);
+    }
+
+    [Fact]
+    public void MarkCharged_OnFixedLevel_SetsHundred()
+    {
+        var estimator = new BatteryEstimator();
+        estimator.SetFixed(Id, "Klip", DeviceKind.Mouse, 20, T0);
+        estimator.MarkCharged(Id, T0);
+        Assert.Equal(100, estimator.EstimatePercent(Id, T0));
+    }
+}

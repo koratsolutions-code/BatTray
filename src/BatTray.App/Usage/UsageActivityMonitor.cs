@@ -202,13 +202,16 @@ internal sealed partial class UsageActivityMonitor : IDisposable
             Log.Info($"Usage estimate: first {signal} activity for {deviceId} this session.");
     }
 
+    private static readonly Guid NoContainer = new("00000000-0000-0000-ffff-ffffffffffff");
+
     private static readonly PropertyKey ContainerIdKey = new(new Guid("8c7ed206-3f8a-4827-b3ab-ae9e1faefc6c"), 2);
 
     private static Guid? ContainerOf(MMDevice endpoint)
     {
         try
         {
-            return endpoint.Properties.Contains(ContainerIdKey) && endpoint.Properties[ContainerIdKey].Value is Guid g ? g : null;
+            // Built-in devices (speakers, laptop keyboard…) all share the "no container" id: never match on it.
+            return endpoint.Properties.Contains(ContainerIdKey) && endpoint.Properties[ContainerIdKey].Value is Guid g && g != NoContainer ? g : null;
         }
         catch (COMException)
         {

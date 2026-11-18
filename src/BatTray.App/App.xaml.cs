@@ -96,7 +96,7 @@ public partial class App : Application
 
         _menuActions = new DeviceMenuActions(SetDeviceHidden, SetStartWithWindows, SetLowBatteryAlerts, SaveDiagnostics,
             DiagnosticsReport.OpenLogFolder, About.AboutWindow.ShowSingle, ConfigureEstimate, MarkCharged, StopEstimate,
-            () => Shutdown());
+            SetLevel, UseFixedLevel, () => Shutdown());
 
         _menuPresenter = new MenuPresenter();
 
@@ -281,6 +281,46 @@ public partial class App : Application
         SaveEstimates(onlyIfDirty: false);
     }
 
+    /// <summary>
+    /// Sets the level of a device without battery data (asks for it when <paramref name="percent"/> is null).
+    /// A device with no entry yet gets a fixed level; an existing entry keeps its mode.
+    /// </summary>
+    private void SetLevel(string deviceId, int? percent)
+    {
+        if (_estimator is null || EstimateCandidates().FirstOrDefault(c => c.Id == deviceId) is not { } candidate)
+            return;
+
+        if (percent is null)
+        {
+            var current = candidate.Estimate is { } e ? BatteryEstimator.Percent(e, DateTimeOffset.UtcNow) : 100;
+            var dialog = new LevelDialog(candidate.Estimate?.Name ?? candidate.Name, current);
+            if (dialog.ShowDialog() != true)
+                return;
+            percent = dialog.Percent;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        if (candidate.Estimate is null)
+            _estimator.SetFixed(deviceId, _usage?.FindAudioName(deviceId) ?? candidate.Name, candidate.Kind, percent.Value, now);
+        else
+            _estimator.SetLevel(deviceId, percent.Value, now);
+        Log.Info($"Level of {deviceId} set to {percent}%.");
+        SaveEstimates(onlyIfDirty: false);
+    }
+
+    /// <summary>Switches a device to a fixed level, keeping its current value.</summary>
+    private void UseFixedLevel(string deviceId)
+    {
+        if (_estimator?.Get(deviceId) is not { } e || e.IsFixed)
+        {
+            RefreshUi(); // re-checks the menu item when it was already fixed
+            return;
+        }
+        _estimator.SetFixed(deviceId, e.Name, e.Kind, BatteryEstimator.Percent(e, DateTimeOffset.UtcNow), DateTimeOffset.UtcNow);
+        Log.Info($"{deviceId} switched to a fixed level.");
+        SaveEstimates(onlyIfDirty: false);
+    }
+
     private void MarkCharged(string deviceId)
     {
         _estimator?.MarkCharged(deviceId, DateTimeOffset.UtcNow);
@@ -302,6 +342,9 @@ public partial class App : Application
         var now = DateTimeOffset.UtcNow;
         var since = now - e.ChargedAt;
         var used = BatteryEstimator.UsedHoursAt(e, now);
+        var setAgo = since.TotalDays >= 1 ? $"{(int)since.TotalDays} d" : since.TotalHours >= 1 ? $"{(int)since.TotalHours} h" : $"{(int)since.TotalMinutes} min";
+        if (e.IsFixed)
+            return $"Set manually · {setAgo} ago";
         var ago = since.TotalDays >= 1 ? $"{(int)since.TotalDays} d" : since.TotalHours >= 1 ? $"{(int)since.TotalHours} h" : $"{(int)since.TotalMinutes} min";
         return $"Estimated from usage · {(used < 1 ? $"{used * 60:0} min" : $"{used:0.#} h")} of {e.RatedHours:0.#} h used · set {ago} ago";
     }
