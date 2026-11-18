@@ -1,14 +1,11 @@
-<p align="center">
-  <img src="src/BatTray.App/Assets/BatTray-512.png" alt="BatTray" width="128" />
-</p>
+<img src="src/BatTray.App/Assets/BatTray-512.png" alt="BatTray" width="88" align="left" />
 
-<h1 align="center">BatTray</h1>
-<p align="center"><b>Your devices. One glance.</b></p>
-<p align="center">
-  by <a href="https://github.com/koratsolutions-code"><img src="src/BatTray.App/Assets/KoratLogo.png" alt="Korat Solutions" height="28" align="middle" /></a>
-</p>
+# BatTray
+**Your devices. One glance.**
 
-<p align="center">🌐 <b>English</b> · <a href="README.es.md">Español</a></p>
+<br clear="left" />
+
+🌐 **English** · [Español](README.es.md)
 
 BatTray shows the battery level of your peripherals (mouse, keyboard, headset, gamepad…) right on the
 Windows taskbar: the device icon next to its percentage.
