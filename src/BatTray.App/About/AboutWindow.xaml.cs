@@ -21,7 +21,7 @@ public partial class AboutWindow : Window
         Closed += (_, _) => _open = null;
     }
 
-    /// <summary>Product version without the build metadata (e.g. "0.1.0").</summary>
+    /// <summary>Product version without the build metadata (e.g. "1.0.0").</summary>
     public static string DisplayVersion
     {
         get
@@ -43,6 +43,15 @@ public partial class AboutWindow : Window
     }
 
     private void OnRepositoryClick(object sender, RoutedEventArgs e) => Open(RepositoryUrl);
+
+    private void OnGuideClick(object sender, RoutedEventArgs e) => OpenUserGuide();
+
+    /// <summary>Opens the user guide installed next to BatTray, or the online README when it is missing.</summary>
+    public static void OpenUserGuide()
+    {
+        var local = Path.Combine(AppContext.BaseDirectory, "UserGuide.html");
+        Open(File.Exists(local) ? local : $"{RepositoryUrl}#readme");
+    }
 
     private void OnLicenseClick(object sender, RoutedEventArgs e)
     {

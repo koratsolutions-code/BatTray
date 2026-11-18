@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BatTray User Guide</title>
+<!-- Offline user guide shipped with the installer. No external resources. -->
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f5f8fc; --border: #e3e9f2; --text: #16284c; --muted: #5a6b85;
+    --brand: #2e6fd0; --good: #2f9e44; --low: #c77d00; --critical: #c42b1c; --code: #eef3fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1a2e; --surface: #16233b; --border: #24344f; --text: #e8eef8; --muted: #9aaac3;
+      --brand: #7dadff; --good: #5fd27a; --low: #f2b84b; --critical: #ff7a6b; --code: #1d2c47;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; }
+  header { background: linear-gradient(180deg, #2e6fd0, #16284c); color: #fff; padding: 28px 16px; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+  header .wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 30px; line-height: 1.1; }
+  header p { margin: 4px 0 0; opacity: .85; }
+  .lang { margin-left: auto; display: flex; gap: 6px; }
+  .lang button { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer; }
+  .lang button[aria-pressed="true"] { background: #fff; color: #16284c; }
+  nav { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1; }
+  nav .wrap { display: flex; gap: 4px 16px; flex-wrap: wrap; padding: 10px 16px; font-size: 14px; }
+  nav a { color: var(--brand); text-decoration: none; }
+  nav a:hover { text-decoration: underline; }
+  main { padding: 8px 0 40px; }
+  h2 { font-size: 22px; margin: 34px 0 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+  h3 { font-size: 17px; margin: 22px 0 6px; }
+  a { color: var(--brand); }
+  code, kbd { background: var(--code); border-radius: 4px; padding: 1px 5px; font: 13px Consolas, "Cascadia Mono", monospace; }
+  .muted { color: var(--muted); }
+  .note { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--brand); border-radius: 6px; padding: 10px 14px; margin: 14px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { background: var(--surface); }
+  .table-scroll { overflow-x: auto; }
+  .taskbar { display: inline-flex; align-items: center; gap: 14px; background: #202020; color: #fff; border-radius: 8px; padding: 10px 16px; font-size: 13px; margin: 6px 0; }
+  .taskbar .item { display: inline-flex; align-items: center; gap: 5px; }
+  .taskbar svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+  .g { color: #5fd27a; } .a { color: #f2b84b; } .r { color: #ff7a6b; }
+  .taskbar .sys { color: #bbb; margin-left: 10px; }
+  /* Only the other language is hidden, so every element keeps its own display (flex, table-cell…). */
+  html[lang="en"] [data-lang="es"], html[lang="es"] [data-lang="en"] { display: none !important; }
+  footer { border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; padding: 18px 0 30px; }
+  @media (max-width: 560px) { header h1 { font-size: 24px; } .lang { margin-left: 0; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <h1>BatTray</h1>
+      <p data-lang="en">Your devices. One glance. — User guide</p>
+      <p data-lang="es">Your devices. One glance. — Guía de usuario</p>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-set-lang="en">English</button>
+      <button type="button" data-set-lang="es">Español</button>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="wrap" data-lang="en">
+    <a href="#what">What it does</a><a href="#start">Getting started</a><a href="#taskbar">Taskbar</a><a href="#menu">Menu</a>
+    <a href="#nodata">Devices without battery data</a><a href="#customize">Customize</a><a href="#supported">Supported devices</a>
+    <a href="#privacy">Privacy &amp; safety</a><a href="#help">Troubleshooting</a>
+  </div>
+  <div class="wrap" data-lang="es">
+    <a href="#what">Qué hace</a><a href="#start">Primeros pasos</a><a href="#taskbar">Barra de tareas</a><a href="#menu">Menú</a>
+    <a href="#nodata">Dispositivos sin datos</a><a href="#customize">Personalizar</a><a href="#supported">Dispositivos soportados</a>
+    <a href="#privacy">Privacidad y seguridad</a><a href="#help">Solución de problemas</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- Icon shapes used in the examples (same drawings as the app). -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <path id="i-mouse" d="M8,1.5 C5.4,1.5 3.75,3.4 3.75,5.75 L3.75,10.25 C3.75,12.6 5.4,14.5 8,14.5 C10.6,14.5 12.25,12.6 12.25,10.25 L12.25,5.75 C12.25,3.4 10.6,1.5 8,1.5 Z M8,3.75 L8,6.25 M3.75,7.25 L12.25,7.25"/>
+    <path id="i-headset" d="M2.75,10 L2.75,8 A5.25,5.25 0 0 1 13.25,8 L13.25,10 M2.25,9.25 L4.75,9.25 L4.75,13.75 L2.25,13.75 Z M11.25,9.25 L13.75,9.25 L13.75,13.75 L11.25,13.75 Z"/>
+    <path id="i-keyboard" d="M1.75,4.25 L14.25,4.25 L14.25,11.75 L1.75,11.75 Z M4.25,6.75 L4.3,6.75 M6.75,6.75 L6.8,6.75 M9.25,6.75 L9.3,6.75 M11.75,6.75 L11.8,6.75 M5,9.25 L11,9.25"/>
+  </defs>
+</svg>
+
+<!-- ============================== WHAT IT DOES ============================== -->
+<section id="what">
+  <h2 data-lang="en">What BatTray does</h2>
+  <h2 data-lang="es">Qué hace BatTray</h2>
+  <p data-lang="en">BatTray shows the battery level of your wireless mouse, keyboard, headset and game controllers right on the
+    Windows taskbar — the device's icon next to its percentage — so you never get caught with a dead battery.</p>
+  <p data-lang="es">BatTray muestra el nivel de batería de tu ratón, teclado, auricular y mandos inalámbricos directamente en la
+    barra de tareas de Windows —el icono del dispositivo junto a su porcentaje— para que nunca te quedes sin batería.</p>
+
+  <div class="taskbar" aria-label="Example">
+    <span class="item"><svg viewBox="0 0 16 16"><use href="#i-mouse"/></svg><span class="g">50%</span></span>
+    <span class="item"><svg viewBox="0 0 16 16"><use href="#i-headset"/></svg><span class="g">80% ⚡</span></span>
+    <span class="item"><svg viewBox="0 0 16 16"><use href="#i-keyboard"/></svg><span class="r">12%</span></span>
+    <span class="item"><svg viewBox="0 0 16 16"><use href="#i-headset"/></svg><span class="a">~27%</span></span>
+    <span class="sys">^ &nbsp;🔊 &nbsp;13:45</span>
+  </div>
+
+  <ul data-lang="en">
+    <li><b>Green</b> = fine, <b class="a">amber</b> = below 30 %, <b class="r">red</b> = below 15 %.</li>
+    <li><b>⚡</b> = charging. <b>~</b> = estimated or set by you (the device does not report it).</li>
+    <li>Works with Bluetooth devices, game controllers and many 2.4 GHz USB receivers (dongles).</li>
+    <li>One widget per monitor, light and dark themes, any display scaling.</li>
+  </ul>
+  <ul data-lang="es">
+    <li><b>Verde</b> = bien, <b class="a">ámbar</b> = por debajo del 30 %, <b class="r">rojo</b> = por debajo del 15 %.</li>
+    <li><b>⚡</b> = cargando. <b>~</b> = estimado o fijado por ti (el dispositivo no lo informa).</li>
+    <li>Funciona con dispositivos Bluetooth, mandos y muchos receptores USB de 2,4 GHz (dongles).</li>
+    <li>Un widget por monitor, temas claro y oscuro, cualquier escalado de pantalla.</li>
+  </ul>
+</section>
+
+<!-- ============================== GETTING STARTED ============================== -->
+<section id="start">
+  <h2 data-lang="en">Getting started</h2>
+  <h2 data-lang="es">Primeros pasos</h2>
+  <ol data-lang="en">
+    <li>Run <code>BatTray-Setup-1.0.0.msi</code>. It installs for your user only — no administrator rights needed.</li>
+    <li>If Windows shows <i>"Windows protected your PC"</i>, click <b>More info → Run anyway</b>. This appears because the installer is new and not yet code-signed.</li>
+    <li>Accept the license and click <b>Install</b>. At the end, leave <b>Launch BatTray</b> ticked.</li>
+    <li>Turn on your devices. Battery levels appear on the taskbar within a minute (Bluetooth devices must be paired in Windows Settings first).</li>
+    <li>Right-click the widget and tick <b>Start with Windows</b> so BatTray is always there.</li>
+  </ol>
+  <ol data-lang="es">
+    <li>Ejecuta <code>BatTray-Setup-1.0.0.msi</code>. Se instala solo para tu usuario, sin permisos de administrador.</li>
+    <li>Si Windows muestra <i>"Windows protegió su PC"</i>, pulsa <b>Más información → Ejecutar de todas formas</b>. Aparece porque el instalador es nuevo y aún no está firmado digitalmente.</li>
+    <li>Acepta la licencia y pulsa <b>Install</b>. Al final, deja marcado <b>Launch BatTray</b>.</li>
+    <li>Enciende tus dispositivos. Los niveles aparecen en la barra en menos de un minuto (los Bluetooth deben estar emparejados antes en Configuración de Windows).</li>
+    <li>Haz clic derecho en el widget y marca <b>Start with Windows</b> para que BatTray esté siempre.</li>
+  </ol>
+  <p class="muted" data-lang="en">Requirements: Windows 11, or Windows 10 version 2004 or later, 64-bit.</p>
+  <p class="muted" data-lang="es">Requisitos: Windows 11, o Windows 10 versión 2004 o posterior, de 64 bits.</p>
+</section>
+
+<!-- ============================== TASKBAR ============================== -->
+<section id="taskbar">
+  <h2 data-lang="en">On the taskbar</h2>
+  <h2 data-lang="es">En la barra de tareas</h2>
+  <div class="table-scroll"><table>
+    <tr><th data-lang="en">Where</th><th data-lang="es">Dónde</th><th data-lang="en">What you get</th><th data-lang="es">Qué obtienes</th></tr>
+    <tr><td data-lang="en">Widget, next to the clock</td><td data-lang="es">Widget, junto al reloj</td>
+        <td data-lang="en">Icon + percentage of every device. Hover for the full name and the time of the last reading.</td>
+        <td data-lang="es">Icono + porcentaje de cada dispositivo. Pasa el ratón por encima para ver el nombre completo y la hora de la última lectura.</td></tr>
+    <tr><td data-lang="en">Left-click the widget or the tray icon</td><td data-lang="es">Clic izquierdo en el widget o en el icono de la bandeja</td>
+        <td data-lang="en"><b>Detail panel</b>: every device with a level bar, charging state, source and last update.</td>
+        <td data-lang="es"><b>Panel de detalle</b>: cada dispositivo con barra de nivel, estado de carga, origen y última actualización.</td></tr>
+    <tr><td data-lang="en">Right-click the widget or the tray icon</td><td data-lang="es">Clic derecho en el widget o en el icono de la bandeja</td>
+        <td data-lang="en">The <a href="#menu">BatTray menu</a>.</td>
+        <td data-lang="es">El <a href="#menu">menú de BatTray</a>.</td></tr>
+  </table></div>
+  <div class="note" data-lang="en">When the taskbar is full, BatTray hides the devices with the most battery first so it never covers your app buttons. The tray icon (in the notification area) is always available.</div>
+  <div class="note" data-lang="es">Cuando la barra está llena, BatTray oculta primero los dispositivos con más batería para no tapar nunca los botones de tus apps. El icono de la bandeja (en el área de notificación) siempre está disponible.</div>
+  <p data-lang="en"><b>Low battery alert:</b> when a device drops to 15 %, Windows shows one notification. It is not repeated until the device is charged.</p>
+  <p data-lang="es"><b>Alerta de batería baja:</b> cuando un dispositivo baja al 15 %, Windows muestra una notificación. No se repite hasta que lo cargues.</p>
+</section>
+
+<!-- ============================== MENU ============================== -->
+<section id="menu">
+  <h2 data-lang="en">The menu</h2>
+  <h2 data-lang="es">El menú</h2>
+  <div class="table-scroll"><table>
+    <tr><th data-lang="en">Item</th><th data-lang="es">Opción</th><th data-lang="en">What it does</th><th data-lang="es">Qué hace</th></tr>
+    <tr><td><i data-lang="en">(each device)</i><i data-lang="es">(cada dispositivo)</i></td>
+        <td data-lang="en">Tick or untick to show or hide it on the taskbar.</td><td data-lang="es">Márcalo o desmárcalo para mostrarlo u ocultarlo en la barra.</td></tr>
+    <tr><td>Devices without battery data</td>
+        <td data-lang="en">Set a level or estimate it from usage — see <a href="#nodata">below</a>.</td><td data-lang="es">Fija un nivel o estímalo por uso; ver <a href="#nodata">más abajo</a>.</td></tr>
+    <tr><td>Customize devices…</td>
+        <td data-lang="en">Rename devices and change their icons — see <a href="#customize">below</a>.</td><td data-lang="es">Cambia nombres e iconos; ver <a href="#customize">más abajo</a>.</td></tr>
+    <tr><td>Start with Windows</td><td data-lang="en">Start BatTray when you sign in.</td><td data-lang="es">Inicia BatTray al entrar en Windows.</td></tr>
+    <tr><td>Low battery alerts</td><td data-lang="en">Turn the 15 % notification on or off.</td><td data-lang="es">Activa o desactiva la notificación del 15 %.</td></tr>
+    <tr><td>Save diagnostics report…</td><td data-lang="en">Creates a text file describing every device found. Useful when asking for support.</td><td data-lang="es">Crea un archivo de texto con todos los dispositivos encontrados. Útil para pedir soporte.</td></tr>
+    <tr><td>Open log folder</td><td data-lang="en">Opens BatTray's log files.</td><td data-lang="es">Abre los archivos de registro de BatTray.</td></tr>
+    <tr><td>User guide</td><td data-lang="en">Opens this guide.</td><td data-lang="es">Abre esta guía.</td></tr>
+    <tr><td>About BatTray</td><td data-lang="en">Version, website and license.</td><td data-lang="es">Versión, web y licencia.</td></tr>
+    <tr><td>Exit BatTray</td><td data-lang="en">Closes BatTray until you start it again (Start menu → BatTray).</td><td data-lang="es">Cierra BatTray hasta que lo vuelvas a abrir (menú Inicio → BatTray).</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================== NO DATA ============================== -->
+<section id="nodata">
+  <h2 data-lang="en">Devices without battery data</h2>
+  <h2 data-lang="es">Dispositivos sin datos de batería</h2>
+  <p data-lang="en">Some devices — many budget headsets and mice — never send their battery level to the PC, so no program can read it.
+    BatTray lists their receivers under <b>Devices without battery data</b> and offers two options:</p>
+  <p data-lang="es">Algunos dispositivos —muchos auriculares y ratones económicos— nunca envían su nivel de batería al PC, así que ningún
+    programa puede leerlo. BatTray muestra sus receptores en <b>Devices without battery data</b> con dos opciones:</p>
+
+  <h3>Set level manually</h3>
+  <p data-lang="en">Pick 100 / 75 / 50 / 25 % or <i>Other…</i>. The level stays where you put it until you change it.</p>
+  <p data-lang="es">Elige 100 / 75 / 50 / 25 % u <i>Other…</i>. El nivel se queda donde lo pongas hasta que lo cambies.</p>
+
+  <h3>Estimate from usage</h3>
+  <p data-lang="en">Enter the battery life on a full charge (hours of use, from the box or the product page) and the current charge.
+    BatTray then counts how long you use the device:</p>
+  <p data-lang="es">Indica la autonomía con una carga completa (horas de uso, según la caja o la página del producto) y la carga actual.
+    BatTray cuenta cuánto usas el dispositivo:</p>
+  <ul data-lang="en">
+    <li>A headset counts as in use while sound plays through it, and for 10 minutes after.</li>
+    <li>A mouse or keyboard counts as in use while you move or type, and for 10 minutes after.</li>
+    <li>After each charge, choose <b>I just charged it</b>. If the estimate drifts, use <b>Set current level</b> or adjust the battery life.</li>
+  </ul>
+  <ul data-lang="es">
+    <li>Un auricular cuenta como en uso mientras suena audio por él y durante los 10 minutos siguientes.</li>
+    <li>Un ratón o teclado cuenta como en uso mientras lo mueves o escribes, y durante los 10 minutos siguientes.</li>
+    <li>Después de cada carga, elige <b>I just charged it</b>. Si la estimación se desvía, usa <b>Set current level</b> o ajusta la autonomía.</li>
+  </ul>
+  <div class="note" data-lang="en">Both modes are shown with a <b>~</b>. An estimate is an approximation: real battery life depends on volume, lighting and battery age.</div>
+  <div class="note" data-lang="es">Ambos modos se muestran con <b>~</b>. La estimación es una aproximación: la autonomía real depende del volumen, las luces y la edad de la batería.</div>
+</section>
+
+<!-- ============================== CUSTOMIZE ============================== -->
+<section id="customize">
+  <h2 data-lang="en">Customize devices</h2>
+  <h2 data-lang="es">Personalizar dispositivos</h2>
+  <p data-lang="en">Open <b>Customize devices…</b> from the menu, pick a device and:</p>
+  <p data-lang="es">Abre <b>Customize devices…</b> desde el menú, elige un dispositivo y:</p>
+  <ul data-lang="en">
+    <li><b>Name</b>: give it any name (up to 60 characters).</li>
+    <li><b>Icon</b>: choose from mouse, keyboard, headset, earbuds, speaker, microphone, gamepad, trackball, pen, phone, tablet, watch, battery or Bluetooth.</li>
+    <li><b>Upload image…</b>: use your own picture (PNG, JPG, BMP, GIF or ICO, up to 10 MB). It is resized to 64×64; simple, square images with strong contrast look best at taskbar size.</li>
+    <li>Click <b>Save</b>. <b>Reset to default</b> restores the original name and icon.</li>
+  </ul>
+  <ul data-lang="es">
+    <li><b>Name</b>: ponle el nombre que quieras (hasta 60 caracteres).</li>
+    <li><b>Icon</b>: elige entre ratón, teclado, auricular, earbuds, altavoz, micrófono, mando, trackball, lápiz, teléfono, tablet, reloj, batería o Bluetooth.</li>
+    <li><b>Upload image…</b>: usa tu propia imagen (PNG, JPG, BMP, GIF o ICO, hasta 10 MB). Se reduce a 64×64; las imágenes simples, cuadradas y con buen contraste se ven mejor en la barra.</li>
+    <li>Pulsa <b>Save</b>. <b>Reset to default</b> vuelve al nombre y al icono originales.</li>
+  </ul>
+</section>
+
+<!-- ============================== SUPPORTED ============================== -->
+<section id="supported">
+  <h2 data-lang="en">Supported devices</h2>
+  <h2 data-lang="es">Dispositivos soportados</h2>
+  <div class="table-scroll"><table>
+    <tr><th data-lang="en">Connection</th><th data-lang="es">Conexión</th><th data-lang="en">Devices</th><th data-lang="es">Dispositivos</th></tr>
+    <tr><td>Bluetooth</td>
+        <td data-lang="en">Any Bluetooth device that reports its battery to Windows (the level you see in Settings → Bluetooth &amp; devices): mice, keyboards, headsets, earbuds, controllers.</td>
+        <td data-lang="es">Cualquier dispositivo Bluetooth que informe su batería a Windows (el nivel que ves en Configuración → Bluetooth y dispositivos): ratones, teclados, auriculares, earbuds, mandos.</td></tr>
+    <tr><td data-lang="en">Game controllers</td><td data-lang="es">Mandos</td>
+        <td data-lang="en">Xbox controllers (USB, Xbox Wireless Adapter, Bluetooth) and others Windows reports; PlayStation DualShock 4, DualSense and DualSense Edge (USB and Bluetooth).</td>
+        <td data-lang="es">Mandos Xbox (USB, adaptador inalámbrico Xbox, Bluetooth) y otros que Windows reconozca; PlayStation DualShock 4, DualSense y DualSense Edge (USB y Bluetooth).</td></tr>
+    <tr><td>Logitech</td><td>Unifying, Bolt <span data-lang="en">and</span><span data-lang="es">y</span> Lightspeed (HID++ 2.0)</td></tr>
+    <tr><td>Razer</td><td data-lang="en">Wireless mice and keyboards</td><td data-lang="es">Ratones y teclados inalámbricos</td></tr>
+    <tr><td>SteelSeries</td><td>Arctis 1 / 7 / 7+ / Pro / 7X / 7P, Arctis Nova 3P / 5 / 7, Aerox 3 / 5 / 9, Prime, Rival 3 Wireless, Rival 650</td></tr>
+    <tr><td>Corsair</td><td data-lang="en">Void / HS headsets and devices with Corsair's newer protocol (Dark Core, Ironclaw, Harpoon, M65 / M75, K57 / K70, Slipstream, Virtuoso, HS80…)</td>
+        <td data-lang="es">Auriculares Void / HS y dispositivos con el protocolo nuevo de Corsair (Dark Core, Ironclaw, Harpoon, M65 / M75, K57 / K70, Slipstream, Virtuoso, HS80…)</td></tr>
+    <tr><td>HyperX</td><td>Cloud Flight, Cloud Alpha Wireless, Cloud II Wireless, Cloud Alpha 2, Pulsefire Haste 2</td></tr>
+    <tr><td>Glorious · Lamzu · Attack Shark</td><td>Model O Wireless, Lamzu, Attack Shark R5 Ultra</td></tr>
+    <tr><td>MonsGeek · Akko</td><td data-lang="en">Keyboards on their 2.4 GHz dongle</td><td data-lang="es">Teclados con su dongle de 2,4 GHz</td></tr>
+    <tr><td>Keychron</td><td data-lang="en">M2 / M5 / M6 mice</td><td data-lang="es">Ratones M2 / M5 / M6</td></tr>
+    <tr><td>Redragon · ATK · VXE · VGN · Dareu · Zaopin · Scyrox · G-Wolves</td><td data-lang="en">Gaming mice with Compx / Areson / Nordic receivers</td><td data-lang="es">Ratones gaming con receptores Compx / Areson / Nordic</td></tr>
+    <tr><td>Rapoo · Ajazz · Darmoshark · MCHOSE</td><td>VT3 PRO · AJ179 · Darmoshark · L7 / M7 / A7 V2 / K7</td></tr>
+    <tr><td data-lang="en">Other USB receivers</td><td data-lang="es">Otros receptores USB</td>
+        <td data-lang="en">Any receiver that follows the standard HID battery report. Receivers that send no battery data at all can use <a href="#nodata">a manual level or a usage estimate</a>.</td>
+        <td data-lang="es">Cualquier receptor que siga el informe estándar de batería HID. Los que no envían ningún dato pueden usar <a href="#nodata">un nivel manual o una estimación por uso</a>.</td></tr>
+  </table></div>
+  <p class="muted" data-lang="en">Several brand protocols were built from public documentation and open-source drivers and may not have been tested with every model.
+    If your device is not detected, <a href="#help">send a diagnostics report</a>.</p>
+  <p class="muted" data-lang="es">Varios protocolos de marca se hicieron a partir de documentación pública y drivers de código abierto y puede que no se hayan probado con todos los modelos.
+    Si tu dispositivo no se detecta, <a href="#help">envía un informe de diagnóstico</a>.</p>
+</section>
+
+<!-- ============================== PRIVACY ============================== -->
+<section id="privacy">
+  <h2 data-lang="en">Privacy &amp; safety</h2>
+  <h2 data-lang="es">Privacidad y seguridad</h2>
+  <ul data-lang="en">
+    <li>BatTray never connects to the internet and collects no data.</li>
+    <li>It only sends <b>read-only</b> battery queries, and only to receivers it recognises. It never changes device settings or firmware. Unrecognised receivers are never written to.</li>
+    <li>For usage estimates it only checks <i>whether</i> sound is playing and <i>which</i> device you are using — never what you hear or type.</li>
+    <li>Settings are stored in <code>%AppData%\KoratSolutions\BatTray</code>; logs in <code>%LocalAppData%\KoratSolutions\BatTray\logs</code>.</li>
+  </ul>
+  <ul data-lang="es">
+    <li>BatTray nunca se conecta a internet y no recopila datos.</li>
+    <li>Solo envía consultas de batería <b>de lectura</b>, y solo a receptores que reconoce. Nunca cambia ajustes ni firmware de los dispositivos. A los receptores desconocidos nunca se les escribe nada.</li>
+    <li>Para las estimaciones solo comprueba <i>si</i> suena audio y <i>qué</i> dispositivo usas, nunca lo que escuchas o escribes.</li>
+    <li>Los ajustes se guardan en <code>%AppData%\KoratSolutions\BatTray</code>; los registros en <code>%LocalAppData%\KoratSolutions\BatTray\logs</code>.</li>
+  </ul>
+</section>
+
+<!-- ============================== HELP ============================== -->
+<section id="help">
+  <h2 data-lang="en">Troubleshooting</h2>
+  <h2 data-lang="es">Solución de problemas</h2>
+  <div class="table-scroll"><table>
+    <tr><th data-lang="en">Problem</th><th data-lang="es">Problema</th><th data-lang="en">What to do</th><th data-lang="es">Qué hacer</th></tr>
+    <tr><td data-lang="en">A Bluetooth device does not appear</td><td data-lang="es">Un dispositivo Bluetooth no aparece</td>
+        <td data-lang="en">Check that it is connected and that Windows shows its battery in Settings → Bluetooth &amp; devices. If Windows does not, the device does not report it: use <i>Devices without battery data</i>.</td>
+        <td data-lang="es">Comprueba que está conectado y que Windows muestra su batería en Configuración → Bluetooth y dispositivos. Si Windows no la muestra, el dispositivo no la informa: usa <i>Devices without battery data</i>.</td></tr>
+    <tr><td data-lang="en">A USB receiver shows no level</td><td data-lang="es">Un receptor USB no muestra nivel</td>
+        <td data-lang="en">Move the mouse or turn the device on (it may be asleep). If it never appears, it is not supported yet: use <i>Devices without battery data</i> and send a diagnostics report.</td>
+        <td data-lang="es">Mueve el ratón o enciende el dispositivo (puede estar dormido). Si nunca aparece, aún no está soportado: usa <i>Devices without battery data</i> y envía un informe de diagnóstico.</td></tr>
+    <tr><td data-lang="en">The widget is not on the taskbar</td><td data-lang="es">El widget no está en la barra</td>
+        <td data-lang="en">The taskbar may be full (devices are hidden to keep app buttons visible) or no device has data yet. The tray icon is always available.</td>
+        <td data-lang="es">La barra puede estar llena (se ocultan dispositivos para no tapar los botones) o ningún dispositivo tiene datos aún. El icono de la bandeja siempre está disponible.</td></tr>
+    <tr><td data-lang="en">"Windows protected your PC"</td><td data-lang="es">"Windows protegió su PC"</td>
+        <td data-lang="en">Click <b>More info → Run anyway</b>. The installer is not code-signed yet.</td>
+        <td data-lang="es">Pulsa <b>Más información → Ejecutar de todas formas</b>. El instalador aún no está firmado.</td></tr>
+  </table></div>
+  <p data-lang="en"><b>Asking for support:</b> right-click BatTray → <b>Save diagnostics report…</b> and attach the file to an issue at
+    <a href="https://github.com/koratsolutions-code/BatTray/issues">github.com/koratsolutions-code/BatTray/issues</a>.</p>
+  <p data-lang="es"><b>Pedir soporte:</b> clic derecho en BatTray → <b>Save diagnostics report…</b> y adjunta el archivo en
+    <a href="https://github.com/koratsolutions-code/BatTray/issues">github.com/koratsolutions-code/BatTray/issues</a>.</p>
+
+  <h3 data-lang="en">Uninstall</h3>
+  <h3 data-lang="es">Desinstalar</h3>
+  <p data-lang="en">Settings → Apps → Installed apps → BatTray → Uninstall. This also removes the start-with-Windows entry.</p>
+  <p data-lang="es">Configuración → Aplicaciones → Aplicaciones instaladas → BatTray → Desinstalar. También quita el inicio con Windows.</p>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">BatTray 1.0 · © 2026 Korat Solutions · MIT License ·
+    <a href="https://github.com/koratsolutions-code/BatTray">github.com/koratsolutions-code/BatTray</a></div>
+</footer>
+
+<script>
+  // Language: remembered per viewer; defaults to the system language.
+  (function () {
+    var root = document.documentElement;
+    function set(lang) {
+      root.lang = lang;
+      document.querySelectorAll('[data-set-lang]').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-set-lang') === lang));
+      });
+      try { localStorage.setItem('battray-guide-lang', lang); } catch (e) { }
+    }
+    var saved = null;
+    try { saved = localStorage.getItem('battray-guide-lang'); } catch (e) { }
+    set(saved || ((navigator.language || 'en').toLowerCase().startsWith('es') ? 'es' : 'en'));
+    document.querySelectorAll('[data-set-lang]').forEach(function (b) {
+      b.addEventListener('click', function () { set(b.getAttribute('data-set-lang')); });
+    });
+  })();
+</script>
+</body>
+</html>

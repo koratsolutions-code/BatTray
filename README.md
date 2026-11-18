@@ -25,9 +25,13 @@ Windows taskbar: the device icon next to its percentage.
 - Light and dark taskbar themes, any DPI scaling, auto-hide taskbar, full-screen apps, Explorer restarts.
 
 ## Install
-Download and run `BatTray-Setup-<version>.msi`. It installs **per user** (no administrator rights) to
+**[Download the latest installer](https://github.com/koratsolutions-code/BatTray/releases/latest)** and run
+`BatTray-Setup-<version>.msi`. It installs **per user** (no administrator rights) to
 `%LocalAppData%\Programs\BatTray`, adds a Start menu entry and starts BatTray. Uninstall it from
 *Settings › Apps*; the uninstaller also removes the start-with-Windows entry.
+
+The installer includes a **user guide** (Start menu → *BatTray User Guide*, or *User guide* in BatTray's menu).
+If Windows shows *"Windows protected your PC"*, click **More info → Run anyway**: the installer is not code-signed yet.
 
 ## Supported devices
 | Source | Devices | How |

@@ -26,9 +26,14 @@ en la barra de tareas de Windows: el icono del dispositivo junto a su porcentaje
 - Temas claro y oscuro, cualquier escalado DPI, barra que se oculta sola, apps a pantalla completa y reinicios del Explorador.
 
 ## Instalación
-Descarga y ejecuta `BatTray-Setup-<versión>.msi`. Se instala **por usuario** (sin permisos de administrador)
+**[Descarga el último instalador](https://github.com/koratsolutions-code/BatTray/releases/latest)** y ejecuta
+`BatTray-Setup-<versión>.msi`. Se instala **por usuario** (sin permisos de administrador)
 en `%LocalAppData%\Programs\BatTray`, crea un acceso en el menú Inicio y arranca BatTray. Se desinstala desde
 *Configuración › Aplicaciones*; el desinstalador también quita el inicio con Windows.
+
+El instalador incluye una **guía de usuario** (menú Inicio → *BatTray User Guide*, o *User guide* en el menú de
+BatTray). Si Windows muestra *"Windows protegió su PC"*, pulsa **Más información → Ejecutar de todas formas**:
+el instalador aún no está firmado digitalmente.
 
 ## Dispositivos soportados
 | Fuente | Dispositivos | Cómo |

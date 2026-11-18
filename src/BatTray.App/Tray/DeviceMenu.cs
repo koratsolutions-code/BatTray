@@ -17,6 +17,7 @@ internal sealed record DeviceMenuActions(
     Action SaveDiagnostics,
     Action OpenLogFolder,
     Action ShowAbout,
+    Action OpenUserGuide,
     Action<string> ConfigureEstimate,
     Action<string> MarkCharged,
     Action<string> StopEstimate,
@@ -110,6 +111,10 @@ internal static class DeviceMenu
         var logs = new MenuItem { Header = "Open log folder" };
         logs.Click += (_, _) => actions.OpenLogFolder();
         menu.Items.Add(logs);
+
+        var guide = new MenuItem { Header = "User guide" };
+        guide.Click += (_, _) => actions.OpenUserGuide();
+        menu.Items.Add(guide);
 
         var about = new MenuItem { Header = "About BatTray" };
         about.Click += (_, _) => actions.ShowAbout();

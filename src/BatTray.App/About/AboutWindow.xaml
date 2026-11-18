@@ -39,6 +39,9 @@
                    Text="Battery levels of your wireless mice, keyboards, headsets and controllers, right on the Windows taskbar." />
 
         <StackPanel Margin="28,0,28,22">
+            <TextBlock Margin="0,0,0,6">
+                <Hyperlink x:Name="GuideLink" Style="{StaticResource Link}" Click="OnGuideClick">User guide</Hyperlink>
+            </TextBlock>
             <TextBlock>
                 <Hyperlink x:Name="RepositoryLink" Style="{StaticResource Link}" Click="OnRepositoryClick">Website and source code</Hyperlink>
             </TextBlock>
