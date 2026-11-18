@@ -50,52 +50,17 @@ BatTray uses a catalogue of **pluggable protocols** (`IHidBatteryProtocol`):
 
 **Safety:** only read-only queries are sent, and only to receivers a protocol positively recognises.
 Commands that change settings or switch dongle modes are never used. Unrecognised receivers are never
-written to — use **Save diagnostics report…** (or `BatTray.exe --list-devices`) to capture their HID
+written to — use **Save diagnostics report…** to capture their HID
 layout so support can be added.
 
 > The Razer, SteelSeries, Corsair, HyperX and PlayStation protocols are implemented from public
 > documentation and open-source drivers and covered by unit tests, but not yet verified on real hardware.
 
 ## Settings
-Managed from the menu and stored in `%AppData%\KoratSolutions\BatTray\settings.json`:
+Everything is set from the tray menu (right-click the BatTray icon or the widget):
+- **Each device** is listed with its level: untick it to hide it from the taskbar.
+- **Start with Windows**.
+- **Low battery alerts**: on or off.
+- **Save diagnostics report…** and **Open log folder**: useful when asking for support.
 
-| Key | Default | Meaning |
-|---|---|---|
-| `hiddenDeviceIds` | `[]` | Devices not shown on the taskbar |
-| `lowThreshold` | `30` | Below this %, the level turns amber |
-| `criticalThreshold` | `15` | Below this %, the level turns red and an alert is shown |
-| `lowBatteryAlerts` | `true` | Windows notification at the critical level |
-| `showOnAllTaskbars` | `true` | Widget on every monitor's taskbar (restart to apply) |
-
-Logs: `%LocalAppData%\KoratSolutions\BatTray\logs`.
-
-## Development
-Requirements: Windows 11 (10 2004+), [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0).
-
-| Path | Contents |
-|---|---|
-| `src/BatTray.Core` | Models, providers (Bluetooth, controllers, HID receivers), HID protocols, monitor, settings |
-| `src/BatTray.App` | WPF app: taskbar widgets, detail panel, tray icon, menus |
-| `tests/BatTray.Tests` | Unit tests (xUnit) |
-| `installer/` | WiX 5 per-user MSI |
-| `tools/` | `generate-icon.ps1` (brand icon), `build-installer.ps1` |
-
-```bash
-dotnet build
-dotnet test
-dotnet run --project src/BatTray.App
-```
-
-Build the installer (publishes a self-contained build, then the MSI into `artifacts/`):
-```bash
-pwsh tools/build-installer.ps1
-```
-
-### Command-line options
-| Option | Description |
-|---|---|
-| `--mode child` | *(default)* The widget is a child window of the taskbar. |
-| `--mode overlay` | Popup placed on top of the taskbar (fallback strategy). |
-| `--demo` | Simulated devices instead of real readings. |
-| `--list-devices` | Log one reading of every provider (and every receiver's HID layout), then exit. |
-| `--uninstall-cleanup` | Used by the uninstaller: disable start with Windows and close BatTray. |
+The level turns amber below 30% and red below 15%, which is also when the alert is shown.

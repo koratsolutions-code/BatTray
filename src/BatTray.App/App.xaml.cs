@@ -87,7 +87,7 @@ public partial class App : Application
         _theme = new ThemeWatcher(Resources);
 
         _menuActions = new DeviceMenuActions(SetDeviceHidden, SetStartWithWindows, SetLowBatteryAlerts, SaveDiagnostics,
-            DiagnosticsReport.OpenLogFolder, () => Shutdown());
+            DiagnosticsReport.OpenLogFolder, About.AboutWindow.ShowSingle, () => Shutdown());
 
         _menuPresenter = new MenuPresenter();
 

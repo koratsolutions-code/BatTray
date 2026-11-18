@@ -14,6 +14,7 @@ internal sealed record DeviceMenuActions(
     Action<bool> SetLowBatteryAlerts,
     Action SaveDiagnostics,
     Action OpenLogFolder,
+    Action ShowAbout,
     Action Exit);
 
 /// <summary>Builds the shared BatTray context menu.</summary>
@@ -87,6 +88,10 @@ internal static class DeviceMenu
         var logs = new MenuItem { Header = "Open log folder" };
         logs.Click += (_, _) => actions.OpenLogFolder();
         menu.Items.Add(logs);
+
+        var about = new MenuItem { Header = "About BatTray" };
+        about.Click += (_, _) => actions.ShowAbout();
+        menu.Items.Add(about);
 
         menu.Items.Add(new Separator());
 

@@ -20,7 +20,9 @@
 
   <ItemGroup>
     <Resource Include="Assets\BatTray.ico" />
-    <None Include="Assets\BatTray-512.png" />
+    <Resource Include="Assets\BatTray-512.png" />
+    <Resource Include="Assets\KoratLogo.png" />
+    <Content Include="..\..\LICENSE" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

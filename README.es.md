@@ -51,52 +51,17 @@ su propio protocolo. BatTray usa un catálogo de **protocolos enchufables** (`IH
 
 **Seguridad:** solo se envían consultas de lectura, y solo a receptores que un protocolo reconoce con certeza.
 Nunca se usan comandos que cambien ajustes o el modo del dongle. A los receptores no reconocidos nunca se les
-escribe nada; usa **Save diagnostics report…** (o `BatTray.exe --list-devices`) para registrar su estructura
+escribe nada; usa **Save diagnostics report…** para registrar su estructura
 HID y poder añadirlos.
 
 > Los protocolos de Razer, SteelSeries, Corsair, HyperX y PlayStation están implementados a partir de
 > documentación pública y drivers de código abierto y cubiertos con tests, pero aún no se han verificado con hardware real.
 
 ## Ajustes
-Se gestionan desde el menú y se guardan en `%AppData%\KoratSolutions\BatTray\settings.json`:
+Todo se configura desde el menú de la bandeja (clic derecho en el icono de BatTray o en el widget):
+- **Cada dispositivo** aparece con su nivel: desmárcalo para ocultarlo de la barra.
+- **Start with Windows**: iniciar con Windows.
+- **Low battery alerts**: activar o desactivar las alertas.
+- **Save diagnostics report…** y **Open log folder**: útiles para pedir soporte.
 
-| Clave | Por defecto | Significado |
-|---|---|---|
-| `hiddenDeviceIds` | `[]` | Dispositivos que no se muestran en la barra |
-| `lowThreshold` | `30` | Por debajo de este %, el nivel se pone ámbar |
-| `criticalThreshold` | `15` | Por debajo de este %, se pone rojo y salta la alerta |
-| `lowBatteryAlerts` | `true` | Notificación de Windows al llegar al nivel crítico |
-| `showOnAllTaskbars` | `true` | Widget en la barra de cada monitor (requiere reiniciar BatTray) |
-
-Logs: `%LocalAppData%\KoratSolutions\BatTray\logs`.
-
-## Desarrollo
-Requisitos: Windows 11 (10 2004+), [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0).
-
-| Ruta | Contenido |
-|---|---|
-| `src/BatTray.Core` | Modelos, proveedores (Bluetooth, mandos, receptores HID), protocolos HID, monitor, ajustes |
-| `src/BatTray.App` | App WPF: widgets de barra, panel de detalle, icono de bandeja, menús |
-| `tests/BatTray.Tests` | Tests unitarios (xUnit) |
-| `installer/` | MSI por usuario con WiX 5 |
-| `tools/` | `generate-icon.ps1` (icono de marca), `build-installer.ps1` |
-
-```bash
-dotnet build
-dotnet test
-dotnet run --project src/BatTray.App
-```
-
-Generar el instalador (publica una build autocontenida y luego el MSI en `artifacts/`):
-```bash
-pwsh tools/build-installer.ps1
-```
-
-### Opciones de línea de comandos
-| Opción | Descripción |
-|---|---|
-| `--mode child` | *(por defecto)* El widget es una ventana hija de la barra de tareas. |
-| `--mode overlay` | Ventana emergente encima de la barra (estrategia alternativa). |
-| `--demo` | Dispositivos simulados en lugar de lecturas reales. |
-| `--list-devices` | Registra una lectura de cada proveedor (y la estructura HID de cada receptor) y cierra. |
-| `--uninstall-cleanup` | Lo usa el desinstalador: quita el inicio con Windows y cierra BatTray. |
+El nivel se pone ámbar por debajo del 30% y rojo por debajo del 15%, que es cuando salta la alerta.

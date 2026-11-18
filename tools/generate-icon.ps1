@@ -3,7 +3,8 @@
     Generates src/BatTray.App/Assets/BatTray.ico (16–256 px, PNG-compressed entries) and a 512 px PNG.
 
 .DESCRIPTION
-    BatTray brand mark: a dark rounded square with a green battery outline and a charging bolt.
+    BatTray brand mark (Korat Solutions palette): a rounded square with a brand-blue to navy gradient,
+    a white battery outline with a green charge level and a white charging bolt.
     Run from the repository root:  pwsh tools/generate-icon.ps1
 #>
 [CmdletBinding()]
@@ -13,7 +14,9 @@ param(
 
 Add-Type -AssemblyName System.Drawing
 
-$background = [System.Drawing.Color]::FromArgb(255, 0x1F, 0x29, 0x33)
+$blue = [System.Drawing.Color]::FromArgb(255, 0x2E, 0x6F, 0xD0)   # Korat brand blue
+$navy = [System.Drawing.Color]::FromArgb(255, 0x16, 0x28, 0x4C)   # Korat navy
+$white = [System.Drawing.Color]::FromArgb(255, 0xF5, 0xF8, 0xFC)
 $green = [System.Drawing.Color]::FromArgb(255, 0x3F, 0xB9, 0x50)
 
 function New-RoundedRectPath([float]$x, [float]$y, [float]$w, [float]$h, [float]$r) {
@@ -38,29 +41,33 @@ function New-IconBitmap([int]$size) {
     $s = $size / 256.0
     $g.ScaleTransform($s, $s)
 
-    # Rounded square background (small sizes use the full canvas for legibility).
+    # Rounded square with a vertical brand-blue -> navy gradient (small sizes use the full canvas).
     $inset = if ($size -le 24) { 0 } else { 8 }
     $bg = New-RoundedRectPath $inset $inset (256 - 2 * $inset) (256 - 2 * $inset) 56
-    $g.FillPath((New-Object System.Drawing.SolidBrush $background), $bg)
+    $gradient = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
+        [System.Drawing.PointF]::new(0, $inset), [System.Drawing.PointF]::new(0, 256 - $inset), $blue, $navy)
+    $g.FillPath($gradient, $bg)
 
-    # Battery outline + terminal.
+    # Battery outline + terminal (thicker strokes at small sizes for legibility).
     $stroke = if ($size -le 24) { 20 } else { 14 }
-    $pen = New-Object System.Drawing.Pen $green, $stroke
+    $pen = New-Object System.Drawing.Pen $white, $stroke
     $pen.LineJoin = [System.Drawing.Drawing2D.LineJoin]::Round
-    $body = New-RoundedRectPath 44 80 152 96 18
-    $g.DrawPath($pen, $body)
-    $g.FillPath((New-Object System.Drawing.SolidBrush $green), (New-RoundedRectPath 202 108 18 40 6))
+    $g.DrawPath($pen, (New-RoundedRectPath 40 78 160 100 20))
+    $g.FillPath((New-Object System.Drawing.SolidBrush $white), (New-RoundedRectPath 208 108 16 40 6))
 
-    # Charging bolt inside the battery.
+    # Green charge level (about 60 %).
+    $g.FillPath((New-Object System.Drawing.SolidBrush $green), (New-RoundedRectPath 62 100 72 56 8))
+
+    # White charging bolt across the level.
     $bolt = New-Object System.Drawing.Drawing2D.GraphicsPath
     $bolt.AddPolygon([System.Drawing.PointF[]]@(
-        [System.Drawing.PointF]::new(132, 92),
-        [System.Drawing.PointF]::new(96, 134),
-        [System.Drawing.PointF]::new(120, 134),
-        [System.Drawing.PointF]::new(108, 166),
-        [System.Drawing.PointF]::new(146, 120),
-        [System.Drawing.PointF]::new(122, 120)))
-    $g.FillPath((New-Object System.Drawing.SolidBrush $green), $bolt)
+        [System.Drawing.PointF]::new(140, 92),
+        [System.Drawing.PointF]::new(106, 134),
+        [System.Drawing.PointF]::new(128, 134),
+        [System.Drawing.PointF]::new(116, 164),
+        [System.Drawing.PointF]::new(150, 122),
+        [System.Drawing.PointF]::new(128, 122)))
+    $g.FillPath((New-Object System.Drawing.SolidBrush $white), $bolt)
 
     $g.Dispose()
     return $bitmap
