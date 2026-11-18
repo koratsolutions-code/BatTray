@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using BatTray.App.Icons;
 using BatTray.Core.Estimation;
 using BatTray.Core.Models;
 using BatTray.Core.Settings;
@@ -21,6 +22,7 @@ internal sealed record DeviceMenuActions(
     Action<string> StopEstimate,
     Action<string, int?> SetLevel,
     Action<string> UseFixedLevel,
+    Action CustomizeDevices,
     Action Exit);
 
 /// <summary>A device that does not report its battery: it can be estimated from usage time.</summary>
@@ -54,7 +56,7 @@ internal static class DeviceMenu
                 var id = device.Id;
                 // The check box uses the icon column, so the device icon goes inside the header.
                 var header = new StackPanel { Orientation = Orientation.Horizontal };
-                if (CreateIcon(device.Kind) is { } icon)
+                if (CreateIcon(device.Kind, device.Icon) is { } icon)
                     header.Children.Add(icon);
                 header.Children.Add(new TextBlock
                 {
@@ -78,6 +80,13 @@ internal static class DeviceMenu
 
         if (estimateCandidates.Count > 0)
             menu.Items.Add(CreateEstimatesMenu(estimateCandidates, actions));
+
+        if (devices.Count > 0)
+        {
+            var customize = new MenuItem { Header = "Customize devices…", ToolTip = "Rename devices and change their icons" };
+            customize.Click += (_, _) => actions.CustomizeDevices();
+            menu.Items.Add(customize);
+        }
 
         menu.Items.Add(new Separator());
 
@@ -186,18 +195,12 @@ internal static class DeviceMenu
         return menu;
     }
 
-    private static UIElement? CreateIcon(DeviceKind kind)
+    private static UIElement? CreateIcon(DeviceKind kind, string? iconValue)
     {
-        var key = kind switch
-        {
-            DeviceKind.Mouse => "Icon.Mouse",
-            DeviceKind.Keyboard => "Icon.Keyboard",
-            DeviceKind.Headset => "Icon.Headset",
-            DeviceKind.Gamepad => "Icon.Gamepad",
-            _ => "Icon.Other",
-        };
-
-        if (Application.Current?.TryFindResource(key) is not Geometry geometry)
+        var icon = DeviceIconProvider.Resolve(kind, iconValue);
+        if (icon.Image is { } image)
+            return new Image { Source = image, Width = 16, Height = 16 };
+        if (icon.Geometry is not { } geometry)
             return null;
 
         return new Path

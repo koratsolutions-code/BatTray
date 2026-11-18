@@ -37,10 +37,12 @@
                 <DataTemplate DataType="{x:Type vm:DeviceViewModel}">
                     <StackPanel Orientation="Horizontal" Margin="5,0" Background="#01000000"
                                 ToolTip="{Binding ToolTip}">
+                        <Image x:Name="IconImage" Width="16" Height="16" VerticalAlignment="Center" Visibility="Collapsed"
+                               Source="{Binding Icon.Image}" RenderOptions.BitmapScalingMode="HighQuality" />
                         <Path x:Name="Icon"
                               Width="16" Height="16" Stretch="None"
                               VerticalAlignment="Center"
-                              Data="{StaticResource Icon.Other}"
+                              Data="{Binding Icon.Geometry}"
                               Stroke="{DynamicResource WidgetForegroundBrush}"
                               StrokeThickness="1.4"
                               StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
@@ -59,17 +61,9 @@
                     </StackPanel>
 
                     <DataTemplate.Triggers>
-                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DeviceKind.Mouse}">
-                            <Setter TargetName="Icon" Property="Data" Value="{StaticResource Icon.Mouse}" />
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DeviceKind.Keyboard}">
-                            <Setter TargetName="Icon" Property="Data" Value="{StaticResource Icon.Keyboard}" />
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DeviceKind.Headset}">
-                            <Setter TargetName="Icon" Property="Data" Value="{StaticResource Icon.Headset}" />
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DeviceKind.Gamepad}">
-                            <Setter TargetName="Icon" Property="Data" Value="{StaticResource Icon.Gamepad}" />
+                        <DataTrigger Binding="{Binding Icon.IsImage}" Value="True">
+                            <Setter TargetName="Icon" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="IconImage" Property="Visibility" Value="Visible" />
                         </DataTrigger>
 
                         <DataTrigger Binding="{Binding Level}" Value="{x:Static core:BatteryLevel.Low}">

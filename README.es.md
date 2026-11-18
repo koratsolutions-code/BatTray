@@ -75,6 +75,10 @@ Todo se configura desde el menú de la bandeja (clic derecho en el icono de BatT
 - **Start with Windows**: iniciar con Windows.
 - **Low battery alerts**: activar o desactivar las alertas.
 - **Save diagnostics report…** y **Open log folder**: útiles para pedir soporte.
+- **Customize devices…**: cambia el nombre de cualquier dispositivo y elige su icono del set incluido (ratón,
+  teclado, auricular, earbuds, altavoz, micrófono, mando, trackball, lápiz, teléfono, tablet, reloj, batería,
+  Bluetooth) o sube tu propia imagen (PNG, JPG, BMP, GIF o ICO; se reduce a 64×64 y se guarda en la carpeta de
+  ajustes de BatTray).
 - **About BatTray**: versión, web y licencia.
 
 ### Dispositivos sin datos de batería

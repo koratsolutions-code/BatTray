@@ -1,7 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using BatTray.App.Customize;
 using BatTray.App.Diagnostics;
+using BatTray.App.Icons;
 using BatTray.App.Panel;
 using BatTray.App.Services;
 using BatTray.App.Taskbar;
@@ -35,7 +37,8 @@ public partial class App : Application
     private readonly EstimateStore _estimateStore = new();
     private static readonly TimeSpan EstimateSaveInterval = TimeSpan.FromMinutes(5);
     private AppSettings _settings = new();
-    private IReadOnlyList<Device> _devices = [];
+    private IReadOnlyList<Device> _rawDevices = [];   // as reported by the providers
+    private IReadOnlyList<Device> _devices = [];      // with the user's names and icons
     private IReadOnlyList<IBatteryProvider> _providers = [];
 
     private Mutex? _singleInstance;
@@ -96,7 +99,7 @@ public partial class App : Application
 
         _menuActions = new DeviceMenuActions(SetDeviceHidden, SetStartWithWindows, SetLowBatteryAlerts, SaveDiagnostics,
             DiagnosticsReport.OpenLogFolder, About.AboutWindow.ShowSingle, ConfigureEstimate, MarkCharged, StopEstimate,
-            SetLevel, UseFixedLevel, () => Shutdown());
+            SetLevel, UseFixedLevel, CustomizeDevices, () => Shutdown());
 
         _menuPresenter = new MenuPresenter();
 
@@ -170,7 +173,8 @@ public partial class App : Application
         Log.Info($"Devices: {(devices.Count == 0 ? "none" : string.Join(", ", devices.Select(d => $"{d.Name} {d.BatteryPercent?.ToString() ?? "?"}% [{d.Source}]")))}");
         Dispatcher.BeginInvoke(() =>
         {
-            _devices = devices;
+            _rawDevices = devices;
+            _devices = devices.Select(_settings.Customize).ToList();
             RefreshUi();
             AnnounceLowBatteries();
         });
@@ -387,6 +391,21 @@ public partial class App : Application
         {
             Log.Error("Could not write the diagnostics report.", ex);
         }
+    }
+
+    private void CustomizeDevices() =>
+        CustomizeWindow.ShowSingle(_rawDevices, id => _settings.CustomizationFor(id), SaveCustomization);
+
+    private void SaveCustomization(string deviceId, DeviceCustomization? customization)
+    {
+        _settings = _settings.WithCustomization(deviceId, customization);
+        SaveSettings();
+        DeviceIconProvider.DeleteUnused(_settings.Customizations.Values);
+        Log.Info(customization is null || customization.IsEmpty
+            ? $"Customization of {deviceId} reset."
+            : $"Device {deviceId} customized (name: {customization.Name ?? "default"}, icon: {customization.Icon ?? "default"}).");
+        _devices = _rawDevices.Select(_settings.Customize).ToList();
+        RefreshUi();
     }
 
     private void SaveSettings()

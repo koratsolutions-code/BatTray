@@ -1,3 +1,4 @@
+using BatTray.App.Icons;
 using BatTray.Core;
 using BatTray.Core.Models;
 
@@ -12,7 +13,8 @@ public sealed record DetailPanelItem(
     bool IsCharging,
     bool IsHidden,
     string Details,
-    bool IsEstimated = false)
+    bool IsEstimated = false,
+    DeviceIcon? Icon = null)
 {
     public string PercentText => Percent is { } p ? $"{(IsEstimated ? "~" : string.Empty)}{p}%" : "—";
 
@@ -34,6 +36,7 @@ public sealed record DetailPanelItem(
             device.Charging == true,
             hidden,
             details,
-            device.Estimated);
+            device.Estimated,
+            DeviceIconProvider.Resolve(device.Kind, device.Icon));
     }
 }

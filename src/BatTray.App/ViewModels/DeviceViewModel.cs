@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using BatTray.App.Icons;
 using BatTray.Core;
 using BatTray.Core.Models;
 
@@ -15,6 +16,9 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
     private string _source = string.Empty;
     private bool _isShown = true;
     private bool _isEstimated;
+    private DeviceIcon? _icon;
+    private string? _iconValue;
+    private DeviceKind? _iconKind;
     private int _lowThreshold = BatteryLevelPalette.DefaultLowThreshold;
     private int _criticalThreshold = BatteryLevelPalette.DefaultCriticalThreshold;
 
@@ -31,6 +35,9 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
     public string Name { get => _name; private set => Set(ref _name, value); }
 
     public DeviceKind Kind { get => _kind; private set => Set(ref _kind, value); }
+
+    /// <summary>The device's icon (built-in or uploaded by the user).</summary>
+    public DeviceIcon? Icon { get => _icon; private set => Set(ref _icon, value); }
 
     public int? Percent
     {
@@ -74,6 +81,12 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
 
         Name = device.Name;
         Kind = device.Kind;
+        if (_icon is null || _iconValue != device.Icon || _iconKind != device.Kind)
+        {
+            _iconValue = device.Icon;
+            _iconKind = device.Kind;
+            Icon = DeviceIconProvider.Resolve(device.Kind, device.Icon);
+        }
         Percent = device.BatteryPercent;
         IsCharging = device.Charging == true;
         IsEstimated = device.Estimated;

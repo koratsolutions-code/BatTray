@@ -74,6 +74,9 @@ Everything is set from the tray menu (right-click the BatTray icon or the widget
 - **Start with Windows**.
 - **Low battery alerts**: on or off.
 - **Save diagnostics report…** and **Open log folder**: useful when asking for support.
+- **Customize devices…**: rename any device and pick its icon from the built-in set (mouse, keyboard, headset,
+  earbuds, speaker, microphone, gamepad, trackball, pen, phone, tablet, watch, battery, Bluetooth) or upload your
+  own image (PNG, JPG, BMP, GIF or ICO; it is resized to 64×64 and stored in BatTray's settings folder).
 - **About BatTray**: version, website and license.
 
 ### Devices without battery data
