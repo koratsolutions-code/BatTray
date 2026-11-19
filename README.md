@@ -5,8 +5,13 @@
 
 🌐 **English** · [Español](README.es.md)
 
-BatTray shows the battery level of your peripherals (mouse, keyboard, headset, gamepad…) right on the
-Windows taskbar: the device icon next to its percentage.
+BatTray shows the battery level of your wireless peripherals (mouse, keyboard, headset, earbuds, gamepad…) right on
+the Windows taskbar: the device icon next to its percentage.
+
+**Bluetooth and 2.4 GHz, in one place.** Windows only shows the battery of some Bluetooth devices, and 2.4 GHz
+USB receivers (dongles) have no common battery standard: every brand uses its own protocol, usually only readable
+by its own app. BatTray reads both: Bluetooth devices, and 2.4 GHz receivers from more than 70 protocols and brands,
+with no vendor software needed.
 
 ```
 [🖱 50%]  [🎧 80%⚡]  [⌨ 12%]   ⌃  🔊  🔋97%   13:45

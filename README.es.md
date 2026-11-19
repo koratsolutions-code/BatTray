@@ -5,8 +5,13 @@
 
 🌐 [English](README.md) · **Español**
 
-BatTray muestra el nivel de batería de tus periféricos (ratón, teclado, auriculares, mandos…) directamente
-en la barra de tareas de Windows: el icono del dispositivo junto a su porcentaje.
+BatTray muestra el nivel de batería de tus periféricos inalámbricos (ratón, teclado, auriculares, auriculares de
+botón, mandos…) directamente en la barra de tareas de Windows: el icono del dispositivo junto a su porcentaje.
+
+**Bluetooth y 2,4 GHz, en un solo lugar.** Windows solo muestra la batería de algunos dispositivos Bluetooth, y los
+receptores USB de 2,4 GHz (dongles) no tienen un estándar de batería común: cada marca usa su propio protocolo, que
+normalmente solo lee su propia app. BatTray lee los dos: dispositivos Bluetooth y receptores de 2,4 GHz de más de 70
+protocolos y marcas, sin instalar el software del fabricante.
 
 ```
 [🖱 50%]  [🎧 80%⚡]  [⌨ 12%]   ⌃  🔊  🔋97%   13:45
