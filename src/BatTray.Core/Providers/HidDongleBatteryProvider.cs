@@ -32,21 +32,98 @@ public sealed class HidDongleBatteryProvider : IBatteryProvider, IDiagnosticsSou
         _watcher = CreateWatcher();
     }
 
+    /// <summary>
+    /// Every protocol, most specific first: a receiver goes to the first protocol whose <c>CanHandle</c> accepts it.
+    /// Each protocol only claims exact VID:PID pairs (plus the collection shape it needs).
+    /// </summary>
     public static IReadOnlyList<IHidBatteryProtocol> DefaultProtocols() =>
     [
+        // Headsets on vendor ids shared with mice/keyboards: before the brand protocols.
+        new AstroProtocol(),
+        new RazerHeadsetProtocol(),
+
+        // Major brands.
         new LogitechHidppProtocol(),
         new RazerProtocol(),
         new SteelSeriesProtocol(),
+        new SteelSeriesNovaEliteProtocol(),
         new CorsairProtocol(),
         new HyperXProtocol(),
+        new AudezeMaxwellProtocol(),
+        new SonyInzoneProtocol(),
+
+        // Chinese 2.4 GHz receiver families and keyboards.
         new SinoWealthAuroraProtocol(),
         new MonsGeekDongleProtocol(),
+        new RongYuanReceiverProtocol(),
+        new SemicoKeyboardProtocol(),
+        new SonixDongleProtocol(),
+        new ViaWirelessDongleProtocol(),
+        new AulaKeyboardProtocol(),
+        new AulaHeroProtocol(),
+        new AulaSc580Protocol(),
+        new RedragonEvisionProtocol(),
+        new EvisionProtocol(),
+        new DareuProtocol(),
+        new RoyalKludgeMouseProtocol(),
+        new NuPhyProtocol(),
         new KeychronProtocol(),
         new RapooProtocol(),
         new AjazzProtocol(),
+        new AjazzAj139Protocol(),
+        new MachenikeProtocol(),
+        new NiceboyProtocol(),
+        new DeluxM800Protocol(),
         new DarmosharkProtocol(),
+
+        // MCHOSE: the model-specific protocols before the generic one.
+        new MchoseG3Protocol(),
+        new MchoseModernProtocol(),
+        new MchoseKeyboardProtocol(),
+        new MchoseHeadsetProtocol(),
         new MchoseProtocol(),
+        new MchoseA5Protocol(),
+
+        // Gaming mice. ATK Nano before GetPower (same vendor id); ARDOR before Xenta (same FA60 receiver).
+        new AtkNanoDongleProtocol(),
+        new PulsarSonixProtocol(),
+        new VgnZhouProtocol(),
+        new ScyroxV12Protocol(),
+        new EndgameGearProtocol(),
+        new NinjaForceProtocol(),
+        new DarkrimProtocol(),
+        new ArdorFuryProtocol(),
         new GetPowerProtocol(),
+        new GloriousFamilyProtocol(),
+        new VaxeeProtocol(),
+        new FinalmouseProtocol(),
+        new ZowieProtocol(),
+        new RogProtocol(),
+        new MsiMouseProtocol(),
+        new CoolerMasterProtocol(),
+        new AlienwareHeadsetProtocol(),
+        new EweadnProtocol(),
+        new FantechProtocol(),
+        new MotospeedProtocol(),
+        new XentaProtocol(),
+        new IncottProtocol(),
+
+        // Controllers and other audio.
+        new SwitchProProtocol(),
+        new EightBitDoProtocol(),
+        new GameSirProtocol(),
+        new FlydigiProtocol(),
+        new SteamControllerProtocol(),
+        new BeitongProtocol(),
+        new JabraGnpProtocol(),
+        new JblQuantumProtocol(),
+        new AirohaRaceDongleProtocol(),
+        new MaonoProtocol(),
+        new MoondropProtocol(),
+        new NzxtProtocol(),
+        new FractalProtocol(),
+
+        // Last: the standard HID battery usage, for any device not claimed above.
         new StandardHidBatteryProtocol(),
     ];
 

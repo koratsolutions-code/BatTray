@@ -8,12 +8,16 @@ namespace BatTray.Core.Settings;
 /// Null for the default icon of the device type, a built-in icon key (e.g. <c>earbuds</c>), or
 /// <c>file:&lt;32 hex&gt;.png</c> for an image the user uploaded (stored in BatTray's icons folder).
 /// </param>
-public sealed partial record DeviceCustomization(string? Name = null, string? Icon = null)
+/// <param name="AlertAt">Low-battery notification level for this device, or null to use the general setting.</param>
+/// <param name="NoAlerts">Never notify about this device's battery.</param>
+public sealed partial record DeviceCustomization(string? Name = null, string? Icon = null, int? AlertAt = null, bool NoAlerts = false)
 {
     public const int MaxNameLength = 60;
     public const string FilePrefix = "file:";
+    public const int MinAlertAt = 1;
+    public const int MaxAlertAt = 95;
 
-    public bool IsEmpty => string.IsNullOrWhiteSpace(Name) && string.IsNullOrWhiteSpace(Icon);
+    public bool IsEmpty => string.IsNullOrWhiteSpace(Name) && string.IsNullOrWhiteSpace(Icon) && AlertAt is null && !NoAlerts;
 
     /// <summary>The stored image file name of an uploaded icon, or null for any other icon.</summary>
     public string? IconFileName =>
@@ -31,7 +35,8 @@ public sealed partial record DeviceCustomization(string? Name = null, string? Ic
         var icon = Icon?.Trim();
         if (string.IsNullOrEmpty(icon) || !IsValidIcon(icon))
             icon = null;
-        return new DeviceCustomization(name, icon);
+        int? alertAt = AlertAt is { } a ? Math.Clamp(a, MinAlertAt, MaxAlertAt) : null;
+        return new DeviceCustomization(name, icon, NoAlerts ? null : alertAt, NoAlerts);
     }
 
     /// <summary>

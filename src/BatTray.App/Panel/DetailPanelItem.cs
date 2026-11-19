@@ -1,6 +1,7 @@
 using BatTray.App.Icons;
 using BatTray.App.Localization;
 using BatTray.Core;
+using BatTray.Core.History;
 using BatTray.Core.Models;
 
 namespace BatTray.App.Panel;
@@ -15,14 +16,19 @@ public sealed record DetailPanelItem(
     bool IsHidden,
     string Details,
     bool IsEstimated = false,
-    DeviceIcon? Icon = null)
+    DeviceIcon? Icon = null,
+    IReadOnlyList<IReadOnlyList<(double X, double Y)>>? History = null)
 {
+    /// <summary>A chart is drawn when there are at least two readings.</summary>
+    public bool HasHistory => History is { } h && h.Sum(s => s.Count) >= 2;
+
     public string PercentText => Percent is { } p ? $"{(IsEstimated ? "~" : string.Empty)}{p}%" : "—";
 
     /// <summary>Bar fill, 0–1.</summary>
     public double Fraction => (Percent ?? 0) / 100.0;
 
-    public static DetailPanelItem From(Device device, int low, int critical, bool hidden, string? estimateDetails = null)
+    public static DetailPanelItem From(Device device, int low, int critical, bool hidden, string? estimateDetails = null,
+        IReadOnlyList<HistoryPoint>? history = null)
     {
         var details = device.Estimated && estimateDetails is not null
             ? estimateDetails
@@ -38,6 +44,7 @@ public sealed record DetailPanelItem(
             hidden,
             details,
             device.Estimated,
-            DeviceIconProvider.Resolve(device.Kind, device.Icon));
+            DeviceIconProvider.Resolve(device.Kind, device.Icon),
+            history is null ? null : BatteryHistory.Segments(history, DateTimeOffset.UtcNow));
     }
 }

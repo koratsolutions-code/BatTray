@@ -14,7 +14,11 @@ public sealed class WidgetViewModel : INotifyPropertyChanged
     private int _density;
     private double _rowHeight = 20;
 
+    private WidgetDisplay _display = WidgetDisplay.Default;
+
     public ObservableCollection<DeviceViewModel> Devices { get; } = [];
+
+    public WidgetDisplay Display => _display;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -56,7 +60,7 @@ public sealed class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>Scale of the 16 × 16 icon.</summary>
-    public double IconScale => _density switch
+    public double IconScale => _display.SizeFactor * _density switch
     {
         0 => 1.0,
         1 => 0.875,
@@ -65,7 +69,7 @@ public sealed class WidgetViewModel : INotifyPropertyChanged
         _ => 0.6875,
     };
 
-    public double FontSize => _density switch
+    public double FontSize => _display.SizeFactor * _density switch
     {
         0 => 12,
         1 => 11,
@@ -116,9 +120,16 @@ public sealed class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>Synchronises the collection with the given list. Returns true when items were added, removed or reordered.</summary>
-    public bool Apply(IReadOnlyList<Device> devices, int lowThreshold, int criticalThreshold)
+    public bool Apply(IReadOnlyList<Device> devices, int lowThreshold, int criticalThreshold, WidgetDisplay? display = null)
     {
         var structureChanged = false;
+        if (display is not null && display != _display)
+        {
+            _display = display;
+            structureChanged = true; // sizes change: the host must re-measure
+            Raise(nameof(IconScale));
+            Raise(nameof(FontSize));
+        }
         var ids = devices.Select(d => d.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         for (var i = Devices.Count - 1; i >= 0; i--)
@@ -136,12 +147,12 @@ public sealed class WidgetViewModel : INotifyPropertyChanged
             var existing = Devices.FirstOrDefault(d => string.Equals(d.Id, device.Id, StringComparison.OrdinalIgnoreCase));
             if (existing is null)
             {
-                Devices.Insert(i, new DeviceViewModel(device, lowThreshold, criticalThreshold));
+                Devices.Insert(i, new DeviceViewModel(device, lowThreshold, criticalThreshold, _display));
                 structureChanged = true;
                 continue;
             }
 
-            existing.Update(device, lowThreshold, criticalThreshold);
+            existing.Update(device, lowThreshold, criticalThreshold, _display);
             var index = Devices.IndexOf(existing);
             if (index != i)
             {

@@ -15,6 +15,7 @@ using BatTray.App.Usage;
 using BatTray.App.ViewModels;
 using BatTray.Core;
 using BatTray.Core.Estimation;
+using BatTray.Core.History;
 using BatTray.Core.Models;
 using BatTray.Core.Providers;
 using BatTray.Core.Settings;
@@ -29,6 +30,7 @@ namespace BatTray.App;
 ///   --list-devices         log one reading of every provider and exit (diagnostics)
 ///   --uninstall-cleanup    used by the uninstaller: disable start with Windows, close BatTray, exit
 ///   --settings             open the settings window once BatTray has started
+///   --show-panel           open the detail panel after start-up, as the keyboard shortcut does (to check its look)
 ///   --show-menu            open the BatTray menu after start-up and reopen it when it closes (3 times; to check its look)
 /// </summary>
 public partial class App : Application
@@ -39,6 +41,11 @@ public partial class App : Application
 
     private readonly SettingsStore _settingsStore = new();
     private readonly BatteryAlertTracker _alerts = new();
+    private readonly FullChargeTracker _fullCharge = new();
+    private readonly HistoryStore _historyStore = new();
+    private BatteryHistory _history = new();
+    private GlobalHotkey? _hotkey;
+    private bool _hotkeyOk = true;
     private readonly EstimateStore _estimateStore = new();
     private static readonly TimeSpan EstimateSaveInterval = TimeSpan.FromMinutes(5);
     private AppSettings _settings = new();
@@ -111,6 +118,10 @@ public partial class App : Application
         L.Apply(_settings.Language);
         AutoStart.RefreshPathIfEnabled();
         _theme = new ThemeWatcher(Resources, _settings.Theme);
+        if (_settings.BatteryHistory)
+            _history = new BatteryHistory(_historyStore.Load()); // demo mode reads it too, but never saves
+        else if (!_settings.BatteryHistory)
+            DeleteHistoryFile();
 
         _menuActions = new DeviceMenuActions(SetDeviceHidden, ShowSettings, ReportProblem, About.AboutWindow.ShowSingle,
             About.AboutWindow.OpenUserGuide, ConfigureEstimate, MarkCharged, StopEstimate, SetLevel, UseFixedLevel,
@@ -156,7 +167,11 @@ public partial class App : Application
         {
             _usage = new UsageActivityMonitor(_estimator);
             _estimateSaveTimer = new DispatcherTimer { Interval = EstimateSaveInterval };
-            _estimateSaveTimer.Tick += (_, _) => SaveEstimates(onlyIfDirty: true);
+            _estimateSaveTimer.Tick += (_, _) =>
+            {
+                SaveEstimates(onlyIfDirty: true);
+                SaveHistory();
+            };
             _estimateSaveTimer.Start();
         }
 
@@ -176,11 +191,35 @@ public partial class App : Application
         if (!demo)
             _updateTimer.Start();
 
+        // Keyboard shortcut that opens the panel.
+        _hotkey = new GlobalHotkey();
+        _hotkey.Pressed += ShowPanelFromHotkey;
+        ApplyHotkey();
+
         RefreshUi();
         _watcher.Start();
         _buttonsProbe.Start();
         _monitor.Start();
 
+        if (HasFlag(e.Args, "--show-panel"))
+        {
+            // Opens the panel once the first readings are in, as the keyboard shortcut does.
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
+            timer.Tick += (_, _) =>
+            {
+                timer.Stop();
+                ShowPanelFromHotkey();
+            };
+            timer.Start();
+        }
+        if (demo && HasFlag(e.Args, "--show-update"))
+        {
+            // Demo only: shows the update window for an imaginary version (to check its look; nothing is downloaded
+            // unless "Download and install" is pressed, and the fake address is refused before any request).
+            var fake = new ReleaseInfo(new Version(9, 9, 9), "v9.9.9", UpdateChecker.ReleasesPage,
+                new ReleaseAsset("BatTray-Setup-9.9.9.msi", UpdateChecker.DownloadPrefix + "v9.9.9/BatTray-Setup-9.9.9.msi", 1, new string('0', 64)));
+            _ = Dispatcher.BeginInvoke(() => OpenUpdate(fake), DispatcherPriority.ApplicationIdle);
+        }
         if (HasFlag(e.Args, "--settings"))
             _ = Dispatcher.BeginInvoke(ShowSettings, DispatcherPriority.ApplicationIdle);
         if (HasFlag(e.Args, "--show-menu"))
@@ -212,6 +251,15 @@ public partial class App : Application
 
         List<IBatteryProvider> providers =
         [
+            // Earbuds and headsets read directly: listed before the Windows Bluetooth providers so their more
+            // detailed reading (left / right / case) wins when both report the same device.
+            new AirPodsBatteryProvider(),
+            new FastPairBatteryProvider(),
+            new GalaxyBudsBatteryProvider(),
+            new NothingEarBatteryProvider(),
+            new GameSirBleBatteryProvider(),
+            new HeadsetControlBatteryProvider(),
+            new AtkSerialHeadsetProvider(),
             new BleGattBatteryProvider(),
             new BluetoothPnpBatteryProvider(),
             new HidDongleBatteryProvider(),
@@ -229,33 +277,50 @@ public partial class App : Application
         Dispatcher.BeginInvoke(() =>
         {
             _rawDevices = devices;
-            _devices = devices.Select(_settings.Customize).ToList();
+            RebuildDevices();
+            if (_settings.BatteryHistory)
+                _history.Record(devices, DateTimeOffset.UtcNow);
             RefreshUi();
-            AnnounceLowBatteries();
+            AnnounceBatteries();
         });
     }
 
-    private void AnnounceLowBatteries()
+    /// <summary>Applies the user's names, icons and order to the devices reported by the providers.</summary>
+    private void RebuildDevices() => _devices = _settings.Order(_rawDevices.Select(_settings.Customize));
+
+    private void AnnounceBatteries()
     {
-        var due = _alerts.Evaluate(_devices, _settings.CriticalThreshold, _settings.LowThreshold);
-        if (!_settings.LowBatteryAlerts || _tray is null)
+        // Trackers always run so they keep their state; notifications respect the settings.
+        var low = _alerts.Evaluate(_devices, d => _settings.AlertThresholdFor(d.Id), _settings.LowThreshold);
+        var full = _fullCharge.Evaluate(_devices);
+        if (_tray is null)
             return;
 
-        foreach (var device in due)
+        foreach (var device in low)
         {
             Log.Info($"Low battery alert: {device.Name} at {device.BatteryPercent}%{(device.Estimated ? " (estimated)" : string.Empty)}.");
             _tray.Notify(
                 device.Estimated ? L.LowBatteryEstimatedTitle(device.Name, device.BatteryPercent) : L.LowBatteryTitle(device.Name, device.BatteryPercent),
                 L.LowBatteryMessage);
         }
+
+        if (!_settings.FullChargeAlerts)
+            return;
+        foreach (var device in full)
+        {
+            Log.Info($"Full charge: {device.Name}.");
+            _tray.Notify(L.FullChargeTitle(device.Name), L.FullChargeMessage);
+        }
     }
+
+    private WidgetDisplay Display => new(_settings.WidgetPercent, _settings.PercentBelow, _settings.WidgetSize);
 
 
     /// <summary>Pushes the current devices and settings to the widget, the tray icon and both menus. UI thread only.</summary>
     private void RefreshUi()
     {
         var visible = _devices.Where(d => !_settings.IsHidden(d.Id)).ToList();
-        _widgets?.SetDevices(visible, _settings.LowThreshold, _settings.CriticalThreshold);
+        _widgets?.SetDevices(visible, _settings.LowThreshold, _settings.CriticalThreshold, Display);
 
         _tray?.SetDevices(_devices);
 
@@ -274,11 +339,35 @@ public partial class App : Application
     {
         if (_panel is null || TaskbarLocator.TryLocateUnderCursor() is not { } taskbar)
             return;
-
-        _panel.SetItems(_devices
-            .Select(d => DetailPanelItem.From(d, _settings.LowThreshold, _settings.CriticalThreshold, _settings.IsHidden(d.Id), EstimateDetails(d)))
-            .ToList());
+        FillPanel();
         _panel.ShowNearCursor(taskbar.Taskbar, taskbar.Monitor);
+    }
+
+    /// <summary>Keyboard shortcut: opens (or closes) the panel above the primary taskbar, next to the widget.</summary>
+    private void ShowPanelFromHotkey()
+    {
+        if (_panel is null || TaskbarLocator.TryLocate() is not { } taskbar)
+            return;
+        FillPanel();
+        _panel.ShowAt(taskbar.Taskbar, taskbar.Monitor, taskbar.NotifyArea.Left);
+    }
+
+    private void FillPanel()
+    {
+        var now = DateTimeOffset.UtcNow;
+        _panel?.SetItems(_devices
+            .Select(d => DetailPanelItem.From(d, _settings.LowThreshold, _settings.CriticalThreshold, _settings.IsHidden(d.Id), EstimateDetails(d),
+                _settings.BatteryHistory && !d.Estimated ? _history.For(d.Id, now) : null))
+            .ToList());
+    }
+
+    private void ApplyHotkey()
+    {
+        if (_hotkey is null)
+            return;
+        var gesture = _settings.HotkeyEnabled ? HotkeyGesture.Parse(_settings.Hotkey) : null;
+        _hotkeyOk = _hotkey.Set(gesture);
+        Log.Info(gesture is null ? "Keyboard shortcut off." : _hotkeyOk ? $"Keyboard shortcut {gesture} registered." : $"Keyboard shortcut {gesture} is used by another app.");
     }
 
     private static void RefreshTemplate(Control control)
@@ -462,6 +551,9 @@ public partial class App : Application
             OpenUpdate,
             SaveDiagnostics,
             DiagnosticsReport.OpenLogFolder,
+            ClearHistory,
+            CustomizeDevices,
+            () => _hotkeyOk,
             About.AboutWindow.DisplayVersion));
 
     /// <summary>Applies a change made in the settings window, saves it and refreshes everything it affects.</summary>
@@ -479,6 +571,12 @@ public partial class App : Application
             _ = CheckForUpdateAsync(manual: false);
         if (!_settings.CheckForUpdates)
             _update = null;
+        if (_settings.Hotkey != before.Hotkey || _settings.HotkeyEnabled != before.HotkeyEnabled)
+            ApplyHotkey();
+        if (!_settings.BatteryHistory && before.BatteryHistory)
+            ClearHistory();
+        if (!_settings.DeviceOrder.SequenceEqual(before.DeviceOrder))
+            RebuildDevices();
 
         Log.Info("Settings changed.");
         RefreshUi();
@@ -523,7 +621,43 @@ public partial class App : Application
         }
     }
 
-    private static void OpenUpdate(ReleaseInfo release) => OpenUrl(release.PageUrl);
+    private void OpenUpdate(ReleaseInfo release) =>
+        Updates.UpdateDialog.ShowSingle(release, About.AboutWindow.DisplayVersion, OpenUrl, () => Shutdown());
+
+    // ---------- History ----------
+
+    private void SaveHistory()
+    {
+        if (!_settings.BatteryHistory || !_history.IsDirty || _estimateSaveTimer is null)
+            return; // demo mode has no save timer: its fake readings are never written
+        try
+        {
+            _historyStore.Save(_history.Snapshot(markSaved: true));
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Could not save the battery history to {_historyStore.Path}.", ex);
+        }
+    }
+
+    private void ClearHistory()
+    {
+        _history.Clear();
+        DeleteHistoryFile();
+        Log.Info("Battery history cleared.");
+    }
+
+    private void DeleteHistoryFile()
+    {
+        try
+        {
+            _historyStore.Delete();
+        }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+        {
+            Log.Error($"Could not delete {_historyStore.Path}.", ex);
+        }
+    }
 
     // ---------- Report a problem ----------
 
@@ -569,7 +703,9 @@ public partial class App : Application
     }
 
     private void CustomizeDevices() =>
-        CustomizeWindow.ShowSingle(_rawDevices, id => _settings.CustomizationFor(id), SaveCustomization);
+        CustomizeWindow.ShowSingle(_settings.Order(_rawDevices), id => _settings.CustomizationFor(id), SaveCustomization,
+            ids => UpdateSettings(s => s.WithOrder(ids)),
+            () => _settings.LowBatteryAlerts ? _settings.CriticalThreshold : null);
 
     private void SaveCustomization(string deviceId, DeviceCustomization? customization)
     {
@@ -579,7 +715,7 @@ public partial class App : Application
         Log.Info(customization is null || customization.IsEmpty
             ? $"Customization of {deviceId} reset."
             : $"Device {deviceId} customized (name: {customization.Name ?? "default"}, icon: {customization.Icon ?? "default"}).");
-        _devices = _rawDevices.Select(_settings.Customize).ToList();
+        RebuildDevices();
         RefreshUi();
     }
 
@@ -674,6 +810,8 @@ public partial class App : Application
         _updateTimer?.Stop();
         _usage?.Dispose();
         SaveEstimates(onlyIfDirty: true);
+        SaveHistory();
+        _hotkey?.Dispose();
         foreach (var provider in _providers)
             provider.Dispose();
         _buttonsProbe?.Dispose();

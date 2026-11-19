@@ -54,6 +54,7 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <Image x:Name="IconImage" Grid.RowSpan="2" Width="16" Height="16" Visibility="Collapsed"
@@ -93,6 +94,30 @@
                             <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,3,0,0"
                                        FontSize="11" TextTrimming="CharacterEllipsis"
                                        Foreground="{DynamicResource Panel.Secondary}" Text="{Binding Details}" />
+
+                            <!-- 7-day history: 0 % at the bottom, 100 % at the top, now at the right. -->
+                            <Grid Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,6,0,0"
+                                  Visibility="{Binding HasHistory, Converter={StaticResource BoolToVisibility}}"
+                                  ToolTip="{x:Static loc:L.Last7Days}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="28" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Border x:Name="Chart" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Panel.Track}"
+                                        Background="Transparent" />
+                                <Path x:Name="ChartLine" StrokeThickness="1.5" Stroke="{DynamicResource Panel.Level.Good}"
+                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                    <Path.Data>
+                                        <MultiBinding Converter="{x:Static panel:HistoryGeometryConverter.Instance}">
+                                            <Binding Path="History" />
+                                            <Binding Path="ActualWidth" ElementName="Chart" />
+                                            <Binding Path="ActualHeight" ElementName="Chart" />
+                                        </MultiBinding>
+                                    </Path.Data>
+                                </Path>
+                                <TextBlock Grid.Row="1" FontSize="10" Margin="0,2,0,0" Foreground="{DynamicResource Panel.Secondary}"
+                                           Text="{x:Static loc:L.Last7Days}" />
+                            </Grid>
                         </Grid>
 
                         <DataTemplate.Triggers>
@@ -104,10 +129,12 @@
                             <DataTrigger Binding="{Binding Level}" Value="{x:Static core:BatteryLevel.Low}">
                                 <Setter TargetName="Percent" Property="Foreground" Value="{DynamicResource Panel.Level.Low}" />
                                 <Setter TargetName="Bar" Property="Background" Value="{DynamicResource Panel.Level.Low}" />
+                                <Setter TargetName="ChartLine" Property="Stroke" Value="{DynamicResource Panel.Level.Low}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Level}" Value="{x:Static core:BatteryLevel.Critical}">
                                 <Setter TargetName="Percent" Property="Foreground" Value="{DynamicResource Panel.Level.Critical}" />
                                 <Setter TargetName="Bar" Property="Background" Value="{DynamicResource Panel.Level.Critical}" />
+                                <Setter TargetName="ChartLine" Property="Stroke" Value="{DynamicResource Panel.Level.Critical}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Level}" Value="{x:Static core:BatteryLevel.Unknown}">
                                 <Setter TargetName="Percent" Property="Foreground" Value="{DynamicResource Panel.Level.Unknown}" />

@@ -20,6 +20,7 @@ internal sealed class WidgetSet : IDisposable
     private IReadOnlyList<Device> _devices = [];
     private int _low;
     private int _critical;
+    private WidgetDisplay _display = WidgetDisplay.Default;
 
     public WidgetSet(AnchorMode mode, bool allTaskbars, Action leftClick, Action rightClick)
     {
@@ -46,7 +47,7 @@ internal sealed class WidgetSet : IDisposable
             if (!_widgets.TryGetValue(taskbar.TaskbarHwnd, out var widget))
             {
                 widget = new Widget(_mode, _leftClick, _rightClick);
-                widget.ViewModel.Apply(_devices, _low, _critical);
+                widget.ViewModel.Apply(_devices, _low, _critical, _display);
                 _widgets[taskbar.TaskbarHwnd] = widget;
             }
 
@@ -66,13 +67,14 @@ internal sealed class WidgetSet : IDisposable
         }
     }
 
-    public void SetDevices(IReadOnlyList<Device> visibleDevices, int lowThreshold, int criticalThreshold)
+    public void SetDevices(IReadOnlyList<Device> visibleDevices, int lowThreshold, int criticalThreshold, WidgetDisplay display)
     {
         _devices = visibleDevices;
         _low = lowThreshold;
         _critical = criticalThreshold;
+        _display = display;
         foreach (var widget in _widgets.Values)
-            widget.ViewModel.Apply(visibleDevices, lowThreshold, criticalThreshold);
+            widget.ViewModel.Apply(visibleDevices, lowThreshold, criticalThreshold, display);
     }
 
     public void Reposition()

@@ -80,6 +80,7 @@
                                    FontFamily="Segoe UI Variable Text, Segoe UI"
                                    FontSize="{Binding DataContext.FontSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                    Text="{Binding PercentText}"
+                                   Visibility="{Binding ShowPercent, Converter={StaticResource BoolToVisibility}}"
                                    Foreground="{DynamicResource Level.Good}" />
                         <Path Width="8" Height="13" Margin="2,0,0,0" Stretch="Uniform"
                               VerticalAlignment="Center"
@@ -104,6 +105,14 @@
                         <DataTrigger Binding="{Binding Level}" Value="{x:Static core:BatteryLevel.Unknown}">
                             <Setter TargetName="Percent" Property="Foreground" Value="{DynamicResource Level.Unknown}" />
                         </DataTrigger>
+                        <!-- Without the percentage, a low level is shown by colouring the icon. -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding ShowPercent}" Value="False" />
+                                <Condition Binding="{Binding Level}" Value="{x:Static core:BatteryLevel.Low}" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Icon" Property="Stroke" Value="{DynamicResource Level.Low}" />
+                        </MultiDataTrigger>
                     </DataTemplate.Triggers>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>

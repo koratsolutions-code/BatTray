@@ -10,6 +10,11 @@ namespace BatTray.Core.Providers;
 /// controller starts with a short report without battery; reading feature report 0x05 (a read) makes it
 /// switch to the extended report.
 /// </summary>
+/// <remarks>
+/// Layout from Linux drivers/hid/hid-playstation.c; cross-checked with BatteryHub's notes. A Bluetooth controller is
+/// recognised by its device path or by an input report longer than the 64-byte USB report; on Bluetooth the short
+/// report 0x01 never carries the battery, whatever its buffer length.
+/// </remarks>
 public sealed class SonyControllerBatteryProvider : IBatteryProvider
 {
     public const ushort SonyVendorId = 0x054C;
@@ -50,7 +55,7 @@ public sealed class SonyControllerBatteryProvider : IBatteryProvider
         foreach (var collection in controllers)
         {
             var (name, dualSense) = Products[collection.ProductId];
-            var bluetooth = collection.InstanceId.StartsWith(@"HID\{", StringComparison.OrdinalIgnoreCase);
+            var bluetooth = IsBluetooth(collection);
 
             var reading = await ReadAsync(collection, dualSense, bluetooth, cancellationToken);
             if (reading?.Percent is not { } percent)
@@ -63,9 +68,13 @@ public sealed class SonyControllerBatteryProvider : IBatteryProvider
         return result;
     }
 
+    /// <summary>Bluetooth HID enumerates under <c>HID\{service uuid}</c>; its input report is also longer than USB's 64 bytes.</summary>
+    public static bool IsBluetooth(HidCollectionInfo collection) =>
+        collection.InstanceId.StartsWith(@"HID\{", StringComparison.OrdinalIgnoreCase) || collection.InputLength > 64;
+
     private static async Task<HidBatteryReading?> ReadAsync(HidCollectionInfo collection, bool dualSense, bool bluetooth, CancellationToken ct)
     {
-        Func<byte[], bool> hasBattery = f => Parse(f, dualSense) is not null || IsAdapterWithoutController(f, collection.ProductId);
+        Func<byte[], bool> hasBattery = f => Parse(f, dualSense, bluetooth) is not null || IsAdapterWithoutController(f, collection.ProductId);
 
         var frame = await HidTransact.ListenAsync(collection, hasBattery, ListenTimeout, ct);
         if (frame is null && bluetooth && collection.FeatureLength >= 41)
@@ -80,12 +89,19 @@ public sealed class SonyControllerBatteryProvider : IBatteryProvider
             frame = await HidTransact.ListenAsync(collection, hasBattery, ListenTimeout, ct);
         }
 
-        return frame is null || IsAdapterWithoutController(frame, collection.ProductId) ? null : Parse(frame, dualSense);
+        return frame is null || IsAdapterWithoutController(frame, collection.ProductId) ? null : Parse(frame, dualSense, bluetooth);
     }
 
-    /// <summary>The DualShock 4 USB wireless adapter reports byte 31 bit 2 when no controller is paired/on.</summary>
-    private static bool IsAdapterWithoutController(byte[] f, ushort productId) =>
-        productId == 0x0BA0 && f.Length >= 32 && f[0] == 0x01 && (f[31] & 0x04) != 0;
+    /// <summary>
+    /// The DualShock 4 USB wireless adapter reports byte 31 bit 2, or an all-zero status byte, when no controller is
+    /// paired or switched on.
+    /// </summary>
+    public static bool IsAdapterWithoutController(byte[] f, ushort productId) =>
+        productId == 0x0BA0 && f.Length >= 32 && f[0] == 0x01 && ((f[31] & 0x04) != 0 || f[30] == 0);
+
+    /// <summary>Like <see cref="Parse(ReadOnlySpan{byte}, bool)"/>, but over Bluetooth the short report 0x01 is ignored.</summary>
+    public static HidBatteryReading? Parse(ReadOnlySpan<byte> f, bool dualSense, bool bluetooth) =>
+        bluetooth && f.Length > 0 && f[0] == 0x01 ? null : Parse(f, dualSense);
 
     /// <summary>
     /// Parses an input report. DualShock 4: USB report 0x01 (64 bytes) status at [30], Bluetooth 0x11 at [32];

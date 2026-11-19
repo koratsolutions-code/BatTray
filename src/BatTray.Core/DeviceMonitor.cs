@@ -86,16 +86,22 @@ public sealed class DeviceMonitor : IDisposable
                 .ThenByDescending(d => d.LastUpdated)
                 .First());
 
+    /// <summary>Readings this close to the newest one count as the same poll.</summary>
+    private static readonly TimeSpan SamePollWindow = TimeSpan.FromMinutes(2);
+
     private static IEnumerable<Device> MergeById(IEnumerable<Device> devices) =>
         devices
             .GroupBy(d => d.Id, StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Any(d => d.BatteryPercent.HasValue))
             .Select(g =>
             {
+                // Among readings taken in the same poll, the provider listed first wins (e.g. the per-earbud
+                // reading over Windows' single Bluetooth level); otherwise the most recent reading wins.
+                var newest = g.Max(d => d.LastUpdated);
                 var winner = g
                     .OrderByDescending(d => d.BatteryPercent.HasValue)
                     .ThenBy(d => d.Estimated)
-                    .ThenByDescending(d => d.LastUpdated)
+                    .ThenByDescending(d => newest - d.LastUpdated <= SamePollWindow ? newest : d.LastUpdated)
                     .First();
                 var knownKind = g.Select(d => d.Kind).FirstOrDefault(k => k != DeviceKind.Other);
                 return winner.Kind == DeviceKind.Other && knownKind != DeviceKind.Other

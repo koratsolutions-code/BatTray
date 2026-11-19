@@ -7,6 +7,29 @@ using BatTray.Core.Models;
 
 namespace BatTray.App.ViewModels;
 
+/// <summary>How the widget draws its items (from the settings).</summary>
+/// <param name="PercentMode"><c>always</c>, <c>low</c> or <c>never</c>.</param>
+/// <param name="PercentBelow">With <c>low</c>: the percentage shows below this level.</param>
+/// <param name="Size"><c>small</c>, <c>normal</c> or <c>large</c>.</param>
+public sealed record WidgetDisplay(string PercentMode, int PercentBelow, string Size)
+{
+    public static WidgetDisplay Default { get; } = new("always", 50, "normal");
+
+    public bool ShowsPercent(int? percent) => PercentMode switch
+    {
+        "never" => false,
+        "low" => percent is { } p && p < PercentBelow,
+        _ => true,
+    };
+
+    public double SizeFactor => Size switch
+    {
+        "small" => 0.85,
+        "large" => 1.2,
+        _ => 1.0,
+    };
+}
+
 /// <summary>One widget item: device icon + percentage.</summary>
 public sealed class DeviceViewModel : INotifyPropertyChanged
 {
@@ -23,11 +46,17 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
     private int _lowThreshold = BatteryLevelPalette.DefaultLowThreshold;
     private int _criticalThreshold = BatteryLevelPalette.DefaultCriticalThreshold;
 
-    public DeviceViewModel(Device device, int lowThreshold, int criticalThreshold)
+    private WidgetDisplay _display = WidgetDisplay.Default;
+    private bool _showPercent = true;
+
+    public DeviceViewModel(Device device, int lowThreshold, int criticalThreshold, WidgetDisplay? display = null)
     {
         Id = device.Id;
-        Update(device, lowThreshold, criticalThreshold);
+        Update(device, lowThreshold, criticalThreshold, display);
     }
+
+    /// <summary>Whether the percentage is drawn next to the icon (see <see cref="WidgetDisplay"/>).</summary>
+    public bool ShowPercent { get => _showPercent; private set => Set(ref _showPercent, value); }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -71,8 +100,9 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
         $"{Name}: {PercentText}{(IsCharging ? L.ChargingSuffix : string.Empty)}{(IsEstimated ? L.EstimatedSuffix : string.Empty)}\n{L.LastReading(_lastUpdated)}" +
         (string.IsNullOrEmpty(_source) ? string.Empty : $" ({_source})");
 
-    public void Update(Device device, int lowThreshold, int criticalThreshold)
+    public void Update(Device device, int lowThreshold, int criticalThreshold, WidgetDisplay? display = null)
     {
+        _display = display ?? _display;
         if (lowThreshold != _lowThreshold || criticalThreshold != _criticalThreshold)
         {
             _lowThreshold = lowThreshold;
@@ -93,6 +123,7 @@ public sealed class DeviceViewModel : INotifyPropertyChanged
         IsEstimated = device.Estimated;
         _lastUpdated = device.LastUpdated;
         _source = device.Source;
+        ShowPercent = _display.ShowsPercent(device.BatteryPercent);
         OnPropertyChanged(nameof(ToolTip));
     }
 

@@ -154,9 +154,9 @@
     <tr><td data-lang="en">Widget, next to the clock</td><td data-lang="es">Widget, junto al reloj</td>
         <td data-lang="en">Icon + percentage of every device. Hover for the full name and the time of the last reading.</td>
         <td data-lang="es">Icono + porcentaje de cada dispositivo. Pasa el ratón por encima para ver el nombre completo y la hora de la última lectura.</td></tr>
-    <tr><td data-lang="en">Left-click the widget or the tray icon</td><td data-lang="es">Clic izquierdo en el widget o en el icono de la bandeja</td>
-        <td data-lang="en"><b>Detail panel</b>: every device with a level bar, charging state, source and last update.</td>
-        <td data-lang="es"><b>Panel de detalle</b>: cada dispositivo con barra de nivel, estado de carga, origen y última actualización.</td></tr>
+    <tr><td data-lang="en">Left-click the widget or the tray icon, or press <b>Ctrl+Alt+B</b></td><td data-lang="es">Clic izquierdo en el widget o en el icono de la bandeja, o <b>Ctrl+Alt+B</b></td>
+        <td data-lang="en"><b>Detail panel</b>: every device with a level bar, charging state, source, last update and a chart of the last 7 days.</td>
+        <td data-lang="es"><b>Panel de detalle</b>: cada dispositivo con barra de nivel, estado de carga, origen, última actualización y un gráfico de los últimos 7 días.</td></tr>
     <tr><td data-lang="en">Right-click the widget or the tray icon</td><td data-lang="es">Clic derecho en el widget o en el icono de la bandeja</td>
         <td data-lang="en">The <a href="#menu">BatTray menu</a>.</td>
         <td data-lang="es">El <a href="#menu">menú de BatTray</a>.</td></tr>
@@ -191,12 +191,21 @@
 <section id="settings">
   <h2 data-lang="en">Settings</h2>
   <h2 data-lang="es">Ajustes</h2>
-  <p data-lang="en">Changes apply at once.</p>
-  <p data-lang="es">Los cambios se aplican al momento.</p>
+  <p data-lang="en">Settings has three tabs (Battery, Taskbar, General). Changes apply at once.</p>
+  <p data-lang="es">Ajustes tiene tres pestañas (Batería, Barra de tareas, General). Los cambios se aplican al momento.</p>
+  <p data-lang="en"><b>Per device</b> (menu → <b>Customize devices…</b>): drag devices or use the arrows to change their order on the taskbar, and choose each device's low battery notification — the general level, its own level, or never.</p>
+  <p data-lang="es"><b>Por dispositivo</b> (menú → <b>Personalizar dispositivos…</b>): arrastra los dispositivos o usa las flechas para cambiar su orden en la barra, y elige el aviso de batería baja de cada uno: el nivel general, uno propio o ninguno.</p>
+  <p data-lang="en"><b>Updates:</b> when a new version is available, choose it in the menu: BatTray downloads the installer from this project's GitHub releases, checks that its size and SHA-256 match what GitHub published, and installs it (BatTray closes while it installs).</p>
+  <p data-lang="es"><b>Actualizaciones:</b> cuando hay una versión nueva, elígela en el menú: BatTray descarga el instalador desde los releases de GitHub de este proyecto, comprueba que su tamaño y su SHA-256 coinciden con los publicados por GitHub y lo instala (BatTray se cierra mientras se instala).</p>
   <div class="table-scroll"><table>
     <tr><th data-lang="en">Setting</th><th data-lang="es">Ajuste</th><th data-lang="en">Default</th><th data-lang="es">Por defecto</th></tr>
     <tr><td><span data-lang="en">Low level (amber) / critical level (red)</span><span data-lang="es">Nivel bajo (ámbar) / nivel crítico (rojo)</span></td><td data-lang="en">below 30 % / below 15 %</td><td data-lang="es">por debajo del 30 % / del 15 %</td></tr>
     <tr><td><span data-lang="en">Notify me when a device reaches the critical level</span><span data-lang="es">Avisarme cuando un dispositivo llegue al nivel crítico</span></td><td data-lang="en">on</td><td data-lang="es">activado</td></tr>
+    <tr><td><span data-lang="en">Notify me when a device finishes charging</span><span data-lang="es">Avisarme cuando un dispositivo termine de cargar</span></td><td data-lang="en">on</td><td data-lang="es">activado</td></tr>
+    <tr><td><span data-lang="en">Keep a 7-day battery history and show it as a chart in the panel</span><span data-lang="es">Guardar 7 días de historial y mostrarlo como gráfico en el panel</span></td><td data-lang="en">on (turning it off deletes the history)</td><td data-lang="es">activado (al desactivarlo se borra el historial)</td></tr>
+    <tr><td><span data-lang="en">Percentage next to each icon</span><span data-lang="es">Porcentaje junto a cada icono</span></td><td data-lang="en">always — or only below a level, or never (icons only: they turn amber or red when low)</td><td data-lang="es">siempre; o solo por debajo de un nivel, o nunca (solo iconos: se ponen ámbar o rojos cuando el nivel es bajo)</td></tr>
+    <tr><td><span data-lang="en">Size of the taskbar items</span><span data-lang="es">Tamaño de los elementos de la barra</span></td><td data-lang="en">normal (or small, large)</td><td data-lang="es">normal (o pequeño, grande)</td></tr>
+    <tr><td><span data-lang="en">Open the panel with a keyboard shortcut</span><span data-lang="es">Abrir el panel con un atajo de teclado</span></td><td data-lang="en">on, <b>Ctrl+Alt+B</b> — click the box and press new keys to change it</td><td data-lang="es">activado, <b>Ctrl+Alt+B</b>; haz clic en el cuadro y pulsa las teclas nuevas para cambiarlo</td></tr>
     <tr><td><span data-lang="en">Language</span><span data-lang="es">Idioma</span></td><td data-lang="en">same as Windows (English or Spanish)</td><td data-lang="es">igual que Windows (español o inglés)</td></tr>
     <tr><td><span data-lang="en">Menus and windows (theme)</span><span data-lang="es">Menús y ventanas (tema)</span></td><td data-lang="en">same as Windows (light or dark)</td><td data-lang="es">igual que Windows (claro u oscuro)</td></tr>
     <tr><td><span data-lang="en">Start with Windows</span><span data-lang="es">Iniciar con Windows</span></td><td data-lang="en">on after installing</td><td data-lang="es">activado al instalar</td></tr>
@@ -268,20 +277,24 @@
     <tr><td>Bluetooth</td>
         <td data-lang="en">Any Bluetooth device that reports its battery to Windows (the level you see in Settings → Bluetooth &amp; devices): mice, keyboards, headsets, earbuds, controllers.</td>
         <td data-lang="es">Cualquier dispositivo Bluetooth que informe su batería a Windows (el nivel que ves en Configuración → Bluetooth y dispositivos): ratones, teclados, auriculares, earbuds, mandos.</td></tr>
-    <tr><td data-lang="en">Game controllers</td><td data-lang="es">Mandos</td>
-        <td data-lang="en">Xbox controllers (USB, Xbox Wireless Adapter, Bluetooth) and others Windows reports; PlayStation DualShock 4, DualSense and DualSense Edge (USB and Bluetooth).</td>
-        <td data-lang="es">Mandos Xbox (USB, adaptador inalámbrico Xbox, Bluetooth) y otros que Windows reconozca; PlayStation DualShock 4, DualSense y DualSense Edge (USB y Bluetooth).</td></tr>
-    <tr><td>Logitech</td><td>Unifying, Bolt <span data-lang="en">and</span><span data-lang="es">y</span> Lightspeed (HID++ 2.0)</td></tr>
-    <tr><td>Razer</td><td data-lang="en">Wireless mice and keyboards</td><td data-lang="es">Ratones y teclados inalámbricos</td></tr>
-    <tr><td>SteelSeries</td><td>Arctis 1 / 7 / 7+ / Pro / 7X / 7P, Arctis Nova 3P / 5 / 7, Aerox 3 / 5 / 9, Prime, Rival 3 Wireless, Rival 650</td></tr>
-    <tr><td>Corsair</td><td data-lang="en">Void / HS headsets and devices with Corsair's newer protocol (Dark Core, Ironclaw, Harpoon, M65 / M75, K57 / K70, Slipstream, Virtuoso, HS80…)</td>
-        <td data-lang="es">Auriculares Void / HS y dispositivos con el protocolo nuevo de Corsair (Dark Core, Ironclaw, Harpoon, M65 / M75, K57 / K70, Slipstream, Virtuoso, HS80…)</td></tr>
-    <tr><td>HyperX</td><td>Cloud Flight, Cloud Alpha Wireless, Cloud II Wireless, Cloud Alpha 2, Pulsefire Haste 2</td></tr>
-    <tr><td>Glorious · Lamzu · Attack Shark</td><td>Model O Wireless, Lamzu, Attack Shark R5 Ultra</td></tr>
-    <tr><td>MonsGeek · Akko</td><td data-lang="en">Keyboards on their 2.4 GHz dongle</td><td data-lang="es">Teclados con su dongle de 2,4 GHz</td></tr>
-    <tr><td>Keychron</td><td data-lang="en">M2 / M5 / M6 mice</td><td data-lang="es">Ratones M2 / M5 / M6</td></tr>
-    <tr><td>Redragon · ATK · VXE · VGN · Dareu · Zaopin · Scyrox · G-Wolves</td><td data-lang="en">Gaming mice with Compx / Areson / Nordic receivers</td><td data-lang="es">Ratones gaming con receptores Compx / Areson / Nordic</td></tr>
-    <tr><td>Rapoo · Ajazz · Darmoshark · MCHOSE</td><td>VT3 PRO · AJ179 · Darmoshark · L7 / M7 / A7 V2 / K7</td></tr>
+    <tr><td><span data-lang="en">Earbuds</span><span data-lang="es">Auriculares de botón</span></td>
+        <td data-lang="en">Apple AirPods / Beats and Google Fast Pair earbuds (Pixel Buds, Jabra Elite, many Sony / JBL / Bose) from their Bluetooth broadcasts; Samsung Galaxy Buds and Nothing / CMF over their Bluetooth service. Left, right and case levels.</td>
+        <td data-lang="es">Apple AirPods / Beats y auriculares Google Fast Pair (Pixel Buds, Jabra Elite, muchos Sony / JBL / Bose) por sus emisiones Bluetooth; Samsung Galaxy Buds y Nothing / CMF por su servicio Bluetooth. Niveles izquierdo, derecho y estuche.</td></tr>
+    <tr><td><span data-lang="en">Game controllers</span><span data-lang="es">Mandos</span></td>
+        <td data-lang="en">Xbox (USB, adapter, Bluetooth), PlayStation DualShock 4 / DualSense / Edge, Switch Pro and compatible pads, 8BitDo, GameSir (also Cyclone Pro over Bluetooth), Flydigi Vader 5 Pro / Apex 5, Steam Controller, BEITONG.</td>
+        <td data-lang="es">Xbox (USB, adaptador, Bluetooth), PlayStation DualShock 4 / DualSense / Edge, Switch Pro y compatibles, 8BitDo, GameSir (también el Cyclone Pro por Bluetooth), Flydigi Vader 5 Pro / Apex 5, Steam Controller, BEITONG.</td></tr>
+    <tr><td><span data-lang="en">Major brands</span><span data-lang="es">Grandes marcas</span></td>
+        <td data-lang="en">Logitech (Unifying, Bolt, Lightspeed, G headsets), Razer (mice, keyboards, BlackShark V2 HyperSpeed / V2 Pro / V3 X), SteelSeries (Arctis, Nova, Aerox, Prime, Rival), Corsair, HyperX (Cloud and Pulsefire), ASTRO A50 / A20, Audeze Maxwell, Sony INZONE, Keychron.</td>
+        <td data-lang="es">Logitech (Unifying, Bolt, Lightspeed, auriculares G), Razer (ratones, teclados, BlackShark V2 HyperSpeed / V2 Pro / V3 X), SteelSeries (Arctis, Nova, Aerox, Prime, Rival), Corsair, HyperX (Cloud y Pulsefire), ASTRO A50 / A20, Audeze Maxwell, Sony INZONE, Keychron.</td></tr>
+    <tr><td><span data-lang="en">Gaming mice</span><span data-lang="es">Ratones gaming</span></td>
+        <td data-lang="en">Glorious, Hitscan, G-Wolves, WLMouse, LAMZU, Arbiter, Pulsar, ATK / VXE, VGN, Scyrox, Endgame Gear, Ninjutso, Sprime, ZOWIE, VAXEE, Finalmouse, ROG, MSI, Cooler Master, Fantech, Machenike, Incott, EWEADN, Niceboy, Redragon, HECATE, Zenith, Chimera, Darmoshark, Rapoo VT, Ajazz, Delux, Motospeed, Attack Shark, Inphic, ARDOR, Dareu, Sharkoon.</td>
+        <td data-lang="es">Glorious, Hitscan, G-Wolves, WLMouse, LAMZU, Arbiter, Pulsar, ATK / VXE, VGN, Scyrox, Endgame Gear, Ninjutso, Sprime, ZOWIE, VAXEE, Finalmouse, ROG, MSI, Cooler Master, Fantech, Machenike, Incott, EWEADN, Niceboy, Redragon, HECATE, Zenith, Chimera, Darmoshark, Rapoo VT, Ajazz, Delux, Motospeed, Attack Shark, Inphic, ARDOR, Dareu, Sharkoon.</td></tr>
+    <tr><td><span data-lang="en">Keyboards</span><span data-lang="es">Teclados</span></td>
+        <td data-lang="en">MonsGeek, Akko, RongYuan-based keyboards (Attack Shark, AJAZZ, MSI…), AULA, MCHOSE, Royal Kludge, CHERRY, NuPhy, EPOMAKER, URX / EVO80, Semico-based keyboards, Redragon, ATK / VGN / VXE.</td>
+        <td data-lang="es">MonsGeek, Akko, teclados con chip RongYuan (Attack Shark, AJAZZ, MSI…), AULA, MCHOSE, Royal Kludge, CHERRY, NuPhy, EPOMAKER, URX / EVO80, teclados con chip Semico, Redragon, ATK / VGN / VXE.</td></tr>
+    <tr><td><span data-lang="en">Headsets</span><span data-lang="es">Auriculares</span></td>
+        <td data-lang="en">Razer, ASTRO, SteelSeries, HyperX, Corsair, Audeze, Sony INZONE, JBL Quantum, Jabra, AKG N9 Hybrid, ENDORFY Viro, NZXT Lift, Fractal Scape, MOONDROP GM01, MAONO PD200W, DARKRIM, MCHOSE, ATK, VGN, Alienware AW920H. With <a href="https://github.com/Sapd/HeadsetControl">HeadsetControl</a> installed (next to BatTray.exe or in <code>%LocalAppData%\Programs\HeadsetControl</code>), every headset it supports.</td>
+        <td data-lang="es">Razer, ASTRO, SteelSeries, HyperX, Corsair, Audeze, Sony INZONE, JBL Quantum, Jabra, AKG N9 Hybrid, ENDORFY Viro, NZXT Lift, Fractal Scape, MOONDROP GM01, MAONO PD200W, DARKRIM, MCHOSE, ATK, VGN, Alienware AW920H. Con <a href="https://github.com/Sapd/HeadsetControl">HeadsetControl</a> instalado (junto a BatTray.exe o en <code>%LocalAppData%\Programs\HeadsetControl</code>), todos los auriculares que soporta.</td></tr>
     <tr><td data-lang="en">Other USB receivers</td><td data-lang="es">Otros receptores USB</td>
         <td data-lang="en">Any receiver that follows the standard HID battery report. Receivers that send no battery data at all can use <a href="#nodata">a manual level or a usage estimate</a>.</td>
         <td data-lang="es">Cualquier receptor que siga el informe estándar de batería HID. Los que no envían ningún dato pueden usar <a href="#nodata">un nivel manual o una estimación por uso</a>.</td></tr>
@@ -297,14 +310,18 @@
   <h2 data-lang="en">Privacy &amp; safety</h2>
   <h2 data-lang="es">Privacidad y seguridad</h2>
   <ul data-lang="en">
-    <li>BatTray collects no data. Its only network request is the optional daily update check: an anonymous request to GitHub for the latest version number (turn it off in Settings).</li>
+    <li>BatTray collects no data. Its only network requests are the optional daily update check (an anonymous request to GitHub for the latest version number; turn it off in Settings) and, when you choose to install an update, the download of the installer from GitHub.</li>
+    <li>The battery history stays on this PC (<code>history.json</code>) and is deleted when you turn it off.</li>
     <li>It only sends <b>read-only</b> battery queries, and only to receivers it recognises. It never changes device settings or firmware. Unrecognised receivers are never written to.</li>
+    <li>For AirPods and Fast Pair earbuds it only listens to the battery broadcasts those earbuds already send, and ignores any that do not match a device paired with your PC.</li>
     <li>For usage estimates it only checks <i>whether</i> sound is playing and <i>which</i> device you are using — never what you hear or type.</li>
     <li>Settings are stored in <code>%AppData%\KoratSolutions\BatTray</code>; logs in <code>%LocalAppData%\KoratSolutions\BatTray\logs</code>.</li>
   </ul>
   <ul data-lang="es">
-    <li>BatTray no recopila datos. Su única conexión es la comprobación diaria opcional de actualizaciones: una consulta anónima a GitHub del número de la última versión (se desactiva en Ajustes).</li>
+    <li>BatTray no recopila datos. Solo se conecta para la comprobación diaria opcional de actualizaciones (una consulta anónima a GitHub del número de la última versión; se desactiva en Ajustes) y, cuando eliges instalar una actualización, para descargar el instalador desde GitHub.</li>
+    <li>El historial de batería se queda en este PC (<code>history.json</code>) y se borra al desactivarlo.</li>
     <li>Solo envía consultas de batería <b>de lectura</b>, y solo a receptores que reconoce. Nunca cambia ajustes ni firmware de los dispositivos. A los receptores desconocidos nunca se les escribe nada.</li>
+    <li>Para AirPods y auriculares Fast Pair solo escucha las emisiones de batería que esos auriculares ya envían, e ignora las que no coinciden con un dispositivo emparejado con tu PC.</li>
     <li>Para las estimaciones solo comprueba <i>si</i> suena audio y <i>qué</i> dispositivo usas, nunca lo que escuchas o escribes.</li>
     <li>Los ajustes se guardan en <code>%AppData%\KoratSolutions\BatTray</code>; los registros en <code>%LocalAppData%\KoratSolutions\BatTray\logs</code>.</li>
   </ul>

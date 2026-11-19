@@ -36,8 +36,73 @@ public sealed record AppSettings
     /// <summary>USB receivers the user chose not to list (e.g. a dongle whose device is used over Bluetooth).</summary>
     public IReadOnlyList<string> IgnoredReceiverIds { get; init; } = [];
 
+    /// <summary>Notify when a device finishes charging (reminder to unplug it).</summary>
+    public bool FullChargeAlerts { get; init; } = true;
+
+    /// <summary>Order of the devices on the taskbar and in the panel (ids; unknown devices go last).</summary>
+    public IReadOnlyList<string> DeviceOrder { get; init; } = [];
+
+    /// <summary>Percentage next to each icon: <c>always</c>, <c>low</c> (only below <see cref="PercentBelow"/>) or <c>never</c> (icons only).</summary>
+    public string WidgetPercent { get; init; } = "always";
+
+    /// <summary>With <see cref="WidgetPercent"/> = <c>low</c>, the percentage shows below this level.</summary>
+    public int PercentBelow { get; init; } = 50;
+
+    /// <summary>Size of the taskbar items: <c>small</c>, <c>normal</c> or <c>large</c>.</summary>
+    public string WidgetSize { get; init; } = "normal";
+
+    /// <summary>Keep a 7-day battery history per device and show it as a chart in the panel.</summary>
+    public bool BatteryHistory { get; init; } = true;
+
+    /// <summary>Open the panel with a keyboard shortcut.</summary>
+    public bool HotkeyEnabled { get; init; } = true;
+
+    /// <summary>The shortcut, e.g. <c>Ctrl+Alt+B</c>.</summary>
+    public string Hotkey { get; init; } = DefaultHotkey;
+
+    public const string DefaultHotkey = "Ctrl+Alt+B";
+
     public static IReadOnlyList<string> Languages { get; } = ["auto", "en", "es"];
     public static IReadOnlyList<string> Themes { get; } = ["auto", "light", "dark"];
+    public static IReadOnlyList<string> PercentModes { get; } = ["always", "low", "never"];
+    public static IReadOnlyList<string> WidgetSizes { get; } = ["small", "normal", "large"];
+
+    /// <summary>Level at which to notify about this device, or null when it should not be notified.</summary>
+    public int? AlertThresholdFor(string deviceId)
+    {
+        if (!LowBatteryAlerts)
+            return null;
+        var custom = CustomizationFor(deviceId);
+        if (custom?.NoAlerts == true)
+            return null;
+        return custom?.AlertAt ?? CriticalThreshold;
+    }
+
+    /// <summary>Sorts devices by <see cref="DeviceOrder"/>; devices not in it keep their relative order, after the others.</summary>
+    public IReadOnlyList<Device> Order(IEnumerable<Device> devices)
+    {
+        var rank = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < DeviceOrder.Count; i++)
+            rank.TryAdd(DeviceOrder[i], i);
+        return devices
+            .Select((d, i) => (Device: d, Rank: rank.TryGetValue(d.Id, out var r) ? r : int.MaxValue, Index: i))
+            .OrderBy(x => x.Rank).ThenBy(x => x.Index)
+            .Select(x => x.Device)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Puts <paramref name="orderedIds"/> first, in that order, followed by any other ids already saved
+    /// (devices not connected now keep their place relative to each other).
+    /// </summary>
+    public AppSettings WithOrder(IEnumerable<string> orderedIds)
+    {
+        var ids = orderedIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var rest = DeviceOrder.Where(id => !ids.Contains(id, StringComparer.OrdinalIgnoreCase));
+        return this with { DeviceOrder = [.. ids, .. rest] };
+    }
+
+    private const int MaxOrderedDevices = 200;
 
     public bool IsIgnored(string receiverId) =>
         IgnoredReceiverIds.Contains(receiverId, StringComparer.OrdinalIgnoreCase);
@@ -104,6 +169,12 @@ public sealed record AppSettings
             Theme = Themes.Contains(Theme?.ToLowerInvariant()) ? Theme!.ToLowerInvariant() : "auto",
             IgnoredReceiverIds = (IgnoredReceiverIds ?? []).Where(id => !string.IsNullOrWhiteSpace(id))
                 .Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+            DeviceOrder = (DeviceOrder ?? []).Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct(StringComparer.OrdinalIgnoreCase).Take(MaxOrderedDevices).ToList(),
+            WidgetPercent = PercentModes.Contains(WidgetPercent?.ToLowerInvariant()) ? WidgetPercent!.ToLowerInvariant() : "always",
+            PercentBelow = Math.Clamp(PercentBelow, 5, 100),
+            WidgetSize = WidgetSizes.Contains(WidgetSize?.ToLowerInvariant()) ? WidgetSize!.ToLowerInvariant() : "normal",
+            Hotkey = string.IsNullOrWhiteSpace(Hotkey) || Hotkey.Length > 40 ? DefaultHotkey : Hotkey.Trim(),
         };
     }
 }

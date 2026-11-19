@@ -56,7 +56,6 @@ public sealed class GetPowerProtocol : IHidBatteryProtocol
         new(0x373B, 0x1040, Transport.Nordic, "VXE MAD R Major Plus"),
         new(0x373B, 0x104C, Transport.Nordic, "VXE MAD R Major Plus"),
         new(0x373B, 0x1085, Transport.Nordic, "VXE R1 SE+"),
-        new(0x373B, null, Transport.Nordic, null),
 
         // VXE / VGN / Zaopin / Scyrox (0x3554)
         new(0x3554, 0xF58A, Transport.Nordic, "VXE R1 Pro Max"),
@@ -81,6 +80,29 @@ public sealed class GetPowerProtocol : IHidBatteryProtocol
         // G-Wolves (0x33E4)
         new(0x33E4, 0x3854, Transport.Nordic, "G-Wolves Lycan"),
         new(0x33E4, 0x4719, Transport.Nordic, "G-Wolves Lycan"),
+
+        // Redragon M916 Pro / M913 / G49 and Taidu TSG808 (3554:F55D / F5D5 receivers, F55E cable).
+        new(0x3554, 0xF55D, Transport.Nordic, "Redragon wireless mouse"),
+        new(0x3554, 0xF5D5, Transport.Nordic, "Redragon wireless mouse"),
+        new(0x3554, 0xF55E, Transport.Nordic, "Redragon wireless mouse"),
+        // VXE Dragonfly R1, Chimera V2.
+        new(0x3554, 0xF505, Transport.Nordic, "VXE Dragonfly R1"),
+        new(0x3554, 0xF506, Transport.Nordic, "VXE Dragonfly R1"),
+        new(0x3554, 0xF512, Transport.Nordic, "Chimera V2"),
+
+        // Hitscan, Pulsar, HECATE (only the mouse ids: the HECATE G2 headset dongles use another protocol).
+        new(0x3770, 0x0200, Transport.Nordic, "Hitscan Hyperlight"),
+        new(0x3710, 0x5406, Transport.Nordic, "Pulsar XS-1 8K"),
+        new(0x35BB, 0xD3FB, Transport.Nordic, "HECATE wireless mouse"),
+        new(0x35BB, 0xD3FA, Transport.Nordic, "HECATE wireless mouse"),
+        new(0x35BB, 0xD3FC, Transport.Nordic, "HECATE wireless mouse"),
+        new(0x35BB, 0xD3FD, Transport.Nordic, "HECATE wireless mouse"),
+
+        // G-Wolves Fenrir Asym, Zenith Pro, Cherry XTRFY.
+        new(0x33E4, 0x3519, Transport.Nordic, "G-Wolves Fenrir Asym"),
+        new(0x260D, 0x1114, Transport.Nordic, "Zenith Pro"),
+        new(0x260D, 0x1143, Transport.Nordic, "Zenith Pro"),
+        new(0x046A, 0x0330, Transport.Nordic, "Cherry XTRFY wireless mouse"),
     ];
 
     public string Name => "GetPower (Compx/Areson/Nordic)";

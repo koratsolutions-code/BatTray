@@ -157,4 +157,50 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <!--
+        Tabs: the classic Windows property-sheet look (square tabs, the selected one joined to the page)
+        with colours from the theme, so the settings window also works on dark.
+    -->
+    <Style TargetType="TabControl">
+        <Setter Property="Foreground" Value="{DynamicResource App.Text}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <DockPanel KeyboardNavigation.TabNavigation="Local">
+                        <TabPanel DockPanel.Dock="Top" IsItemsHost="True" Panel.ZIndex="1" Margin="2,0,2,-1" />
+                        <Border BorderThickness="1" BorderBrush="{DynamicResource App.InputBorder}" Background="{DynamicResource App.Background}">
+                            <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" />
+                        </Border>
+                    </DockPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style TargetType="TabItem">
+        <Setter Property="Foreground" Value="{DynamicResource App.Text}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border x:Name="Tab" Margin="0,2,-1,0" Padding="12,4" BorderThickness="1,1,1,0"
+                            BorderBrush="{DynamicResource App.InputBorder}" Background="{DynamicResource App.Surface}">
+                        <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Tab" Property="Background" Value="{DynamicResource App.Hover}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Panel.ZIndex" Value="1" />
+                            <Setter TargetName="Tab" Property="Margin" Value="-2,0,-3,0" />
+                            <Setter TargetName="Tab" Property="Padding" Value="14,5,14,7" />
+                            <Setter TargetName="Tab" Property="Background" Value="{DynamicResource App.Background}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Tab" Property="BorderBrush" Value="{DynamicResource App.Accent}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

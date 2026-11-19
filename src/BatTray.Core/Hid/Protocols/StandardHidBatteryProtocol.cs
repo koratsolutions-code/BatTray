@@ -9,22 +9,38 @@ namespace BatTray.Core.Hid.Protocols;
 /// </list>
 /// Only reads feature reports or polls input reports; never writes.
 /// </summary>
+/// <remarks>
+/// Two devices are left alone: drawing tablets and pen displays (any collection on the Digitizers page 0x0D), because
+/// polling one for a battery report has been seen to flip a tablet's Y axis, and UPS / power-supply collections
+/// (top-level pages 0x84 / 0x85), which are not peripherals. Apple devices declare a 0–255 range but report a plain
+/// percentage (Linux's HID_BATTERY_QUIRK_PERCENT). Cross-checked with BatteryHub's notes.
+/// </remarks>
 public sealed class StandardHidBatteryProtocol : IHidBatteryProtocol
 {
     private const ushort GenericDeviceControlsPage = 0x06;
     private const ushort BatteryStrengthUsage = 0x20;
     private const ushort BatterySystemPage = 0x85;
+    private const ushort PowerDevicePage = 0x84;
+    private const ushort DigitizersPage = 0x0D;
+    private const ushort AppleVendorId = 0x05AC;
     private static readonly ushort[] BatterySystemPercentUsages = [0x64, 0x65, 0x66];
 
     public string Name => "Standard HID battery";
 
-    public bool CanHandle(HidReceiver receiver) => FindFields(receiver).Any();
+    public bool CanHandle(HidReceiver receiver) => !IsExcluded(receiver) && FindFields(receiver).Any();
+
+    /// <summary>Tablets / pen displays and UPS-type devices are never polled.</summary>
+    public static bool IsExcluded(HidReceiver receiver) =>
+        receiver.Collections.Any(c => c.UsagePage == DigitizersPage);
 
     public Task<IReadOnlyList<HidBatteryReading>> ReadAsync(HidReceiver receiver, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<HidBatteryReading>>(Read(receiver, cancellationToken) is { } reading ? [reading] : []);
 
     private static HidBatteryReading? Read(HidReceiver receiver, CancellationToken cancellationToken)
     {
+        if (IsExcluded(receiver))
+            return null;
+
         foreach (var (collection, cap) in FindFields(receiver))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -43,7 +59,7 @@ public sealed class StandardHidBatteryProtocol : IHidBatteryProtocol
             if (!ok || !connection.TryGetUsageValue(cap.Type, cap.UsagePage, cap.Usage, report, out var raw))
                 continue;
 
-            var percent = Scale(raw, cap.LogicalMin, cap.LogicalMax);
+            var percent = receiver.VendorId == AppleVendorId ? ScaleApple(raw, cap.LogicalMin, cap.LogicalMax) : Scale(raw, cap.LogicalMin, cap.LogicalMax);
             if (percent is not null)
                 return new HidBatteryReading(percent);
         }
@@ -62,8 +78,13 @@ public sealed class StandardHidBatteryProtocol : IHidBatteryProtocol
         return percent is >= 0 and <= 100 ? (int)Math.Round(percent) : null;
     }
 
+    /// <summary>Apple devices report a plain percentage while declaring a wider range: values up to 100 are taken as-is.</summary>
+    public static int? ScaleApple(uint raw, int logicalMin, int logicalMax) =>
+        raw <= 100 ? (int)raw : Scale(raw, logicalMin, logicalMax);
+
     private static IEnumerable<(HidCollectionInfo Collection, HidValueCap Cap)> FindFields(HidReceiver receiver) =>
         from collection in receiver.Collections
+        where collection.UsagePage is not (PowerDevicePage or BatterySystemPage) // UPS / power supplies
         from cap in collection.ValueCaps
         where cap.Type is HidReportType.Feature or HidReportType.Input
         where (cap.UsagePage == GenericDeviceControlsPage && cap.Usage == BatteryStrengthUsage)

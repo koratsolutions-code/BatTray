@@ -26,16 +26,29 @@ public class DeviceMonitorTests
     public void Merge_KeepsKnownKind_WhenWinningReadingHasNone()
     {
         // Real case: RK100 over Bluetooth — the GATT provider knows it is a keyboard (Appearance),
-        // the Windows PnP provider does not, and its reading may be the most recent one.
+        // the Windows PnP provider does not. A reading much more recent wins and keeps the known kind.
         var merged = DeviceMonitor.Merge(
         [
             new Device("bt:D104C6AECB01", "RK100RGB5.0", DeviceKind.Keyboard, 100, T0, "Bluetooth LE"),
-            new Device("bt:D104C6AECB01", "RK100RGB5.0", DeviceKind.Other, 100, T0.AddSeconds(1), "Windows Bluetooth"),
+            new Device("bt:D104C6AECB01", "RK100RGB5.0", DeviceKind.Other, 100, T0.AddMinutes(5), "Windows Bluetooth"),
         ]);
 
         var device = Assert.Single(merged);
         Assert.Equal(DeviceKind.Keyboard, device.Kind);
         Assert.Equal("Windows Bluetooth", device.Source);
+    }
+
+    [Fact]
+    public void Merge_SamePoll_FirstProviderWins()
+    {
+        // Per-earbud reading (listed first) and Windows' single level taken a second later in the same poll.
+        var merged = DeviceMonitor.Merge(
+        [
+            new Device("bt:A1B2C3D4E5F6", "Buds", DeviceKind.Headset, 70, T0, "L 70% · R 90% · case 50%"),
+            new Device("bt:A1B2C3D4E5F6", "Buds", DeviceKind.Headset, 80, T0.AddSeconds(1), "Windows Bluetooth"),
+        ]);
+
+        Assert.Equal("L 70% · R 90% · case 50%", Assert.Single(merged).Source);
     }
 
     [Fact]

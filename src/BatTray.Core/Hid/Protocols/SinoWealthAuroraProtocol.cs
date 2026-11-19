@@ -16,21 +16,93 @@ public sealed class SinoWealthAuroraProtocol : IHidBatteryProtocol
 {
     public const int ReportLength = 65;
     private const byte Online = 0xA1;
+    private const byte OnlineAlt = 0xA2; // WLMouse / Arbiter firmware
     private const byte Offline = 0xA0;
     private const ushort GloriousWired = 0x2011;
 
-    private static readonly HashSet<(ushort Vid, ushort? Pid)> Devices =
+    /// <summary>
+    /// Exact receivers and cables. Vendor ids 373E / 37B0 are shared with products that speak other protocols
+    /// (e.g. RAWM's Leviathan V4 GT on 373E), so no vendor-wide match is allowed.
+    /// </summary>
+    private static readonly HashSet<(ushort Vid, ushort Pid)> Devices =
     [
         (0x258A, 0x2022), // Glorious Model O Wireless receiver
         (0x258A, GloriousWired), // Glorious Model O Wireless on cable
-        (0x373E, null),   // Lamzu / Attack Shark receivers
-        (0x37B0, null),   // Lamzu receivers
+        // WLMouse (cables, then receivers). Source: WLMouse's web configurator model table.
+        (0x36A7, 0xA879),
+        (0x36A7, 0xA884),
+        (0x36A7, 0xA861),
+        (0x36A7, 0xA866),
+        (0x36A7, 0xA867),
+        (0x36A7, 0xA871),
+        (0x36A7, 0xA856),
+        (0x36A7, 0xA860),
+        (0x36A7, 0xA868),
+        (0x36A7, 0xA870),
+        (0x36A7, 0xA878),
+        (0x36A7, 0xA880),
+        (0x36A7, 0xA883),
+        (0x36A7, 0xA885),
+        // Arbiter Studio Akitsu (cables 0009/0038/0066, receivers 000A/0039/0067).
+        (0x373E, 0x0009),
+        (0x373E, 0x0038),
+        (0x373E, 0x0066),
+        (0x373E, 0x000A),
+        (0x373E, 0x0039),
+        (0x373E, 0x0067),
+        // LAMZU, from LAMZU's own model list.
+        (0x373E, 0x001C),
+        (0x373E, 0x001D),
+        (0x373E, 0x001E),
+        (0x373E, 0x0016),
+        (0x37B0, 0x001F),
+        (0x37B0, 0x0005),
+        (0x37B0, 0x000B),
+        (0x37B0, 0x000C),
+        (0x37B0, 0x001C),
+        (0x37B0, 0x001E),
+        (0x37B0, 0x0009),
+        (0x37B0, 0x000F),
+        (0x37B0, 0x0010),
+        (0x37B0, 0x0011),
+        (0x37B0, 0x0013),
+        (0x37B0, 0x0015),
+        (0x37B0, 0x0007),
+        (0x37B0, 0x000D),
+        (0x37B0, 0x000E),
+        (0x37B0, 0x0017),
+        (0x37B0, 0x0019),
+        (0x37B0, 0x001B),
+        (0x37B0, 0x0021),
+        (0x37B0, 0x0003),
+        (0x37B0, 0x0023),
+        (0x37B0, 0x0030),
+        (0x37B0, 0x0032),
+        (0x37B0, 0x0040),
+        (0x37B0, 0x0025),
+        (0x37B0, 0x0027),
+        (0x37B0, 0x0028),
+        (0x37B0, 0x002B),
+        (0x37B0, 0x002A),
+        (0x37B0, 0x003E),
+        (0x37B0, 0x003F),
+        (0x37B0, 0x002C),
+        (0x37B0, 0x0052),
+        (0x37B0, 0x003A),
+        (0x37B0, 0x003B),
+        (0x37B0, 0x0044),
+        (0x37B0, 0x003C),
+        (0x37B0, 0x0050),
+        (0x37B0, 0x0042),
+        (0x37B0, 0x0056),
+        (0x37B0, 0x0046),
+        (0x37B0, 0x0054),
     ];
 
     public string Name => "Sino Wealth (Aurora)";
 
     public bool CanHandle(HidReceiver receiver) =>
-        (Devices.Contains((receiver.VendorId, receiver.ProductId)) || Devices.Contains((receiver.VendorId, null))) &&
+        Devices.Contains((receiver.VendorId, receiver.ProductId)) &&
         FindCollection(receiver) is not null;
 
     public async Task<IReadOnlyList<HidBatteryReading>> ReadAsync(HidReceiver receiver, CancellationToken cancellationToken)
@@ -80,7 +152,7 @@ public sealed class SinoWealthAuroraProtocol : IHidBatteryProtocol
     /// <summary>Percent from a reply (byte 0 = report id), or null when it is not an online status reply.</summary>
     public static int? ParseReply(ReadOnlySpan<byte> reply)
     {
-        if (reply.Length < 9 || reply[1] != Online || reply[4] != 0x02 || reply[6] != 0x83)
+        if (reply.Length < 9 || (reply[1] != Online && reply[1] != OnlineAlt) || reply[4] != 0x02 || reply[6] != 0x83)
             return null;
         return reply[8] <= 100 ? reply[8] : null;
     }

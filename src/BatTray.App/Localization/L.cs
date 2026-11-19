@@ -90,7 +90,7 @@ public static class L
     public static string LowBatteryEstimatedTitle(string name, int? percent) => T($"{name}: about {percent}% battery (estimated)", $"{name}: alrededor del {percent} % de batería (estimado)");
     public static string LowBatteryMessage => T("Charge it or replace the batteries soon.", "Cárgalo o cambia las pilas pronto.");
     public static string UpdateTitle(string version) => T($"BatTray {version} is available", $"BatTray {version} está disponible");
-    public static string UpdateMessage => T("Right-click BatTray and choose the update to download it.", "Haz clic derecho en BatTray y elige la actualización para descargarla.");
+    public static string UpdateMessage => T("Right-click BatTray and choose the update to install it.", "Haz clic derecho en BatTray y elige la actualización para instalarla.");
 
     // ---------- About ----------
     public static string Version(string v) => T($"Version {v}", $"Versión {v}");
@@ -175,8 +175,78 @@ public static class L
     public static string Checking => T("Checking…", "Comprobando…");
     public static string UpToDate(string v) => T($"You have the latest version ({v}).", $"Tienes la última versión ({v}).");
     public static string NewVersion(string v) => T($"BatTray {v} is available.", $"BatTray {v} está disponible.");
-    public static string Download => T("Download", "Descargar");
+    public static string Download => T("Install…", "Instalar…");
     public static string CheckFailed => T("Could not check right now. Try again later.", "No se pudo comprobar ahora. Inténtalo más tarde.");
+
+    public static string TabBattery => T("Battery", "Batería");
+    public static string TabTaskbar => T("Taskbar", "Barra de tareas");
+    public static string TabGeneral => "General";
+    public static string Devices => T("Devices", "Dispositivos");
+    public static string Levels => T("Levels", "Niveles");
+    public static string Alerts => T("Notifications", "Avisos");
+    public static string FullChargeAlerts => T("Notify me when a device finishes charging (to unplug it)", "Avisarme cuando un dispositivo termine de cargar (para desconectarlo)");
+    public static string PerDeviceAlertsHint => T(
+        "You can set a different level, or turn notifications off, for each device in Customize devices.",
+        "Puedes poner otro nivel, o desactivar los avisos, para cada dispositivo en Personalizar dispositivos.");
+    public static string History => T("History", "Historial");
+    public static string KeepHistory => T("Keep a 7-day battery history and show it as a chart in the panel", "Guardar 7 días de historial de batería y mostrarlo como gráfico en el panel");
+    public static string KeepHistoryHint => T("Stored only on this PC. Turning it off deletes it.", "Se guarda solo en este PC. Al desactivarlo se borra.");
+    public static string ClearHistory => T("Clear history", "Borrar historial");
+    public static string HistoryCleared => T("History cleared.", "Historial borrado.");
+    public static string PercentOnTaskbar => T("Percentage next to each icon", "Porcentaje junto a cada icono");
+    public static string PercentAlways => T("Always", "Siempre");
+    public static string PercentLow => T("Only below", "Solo por debajo de");
+    public static string PercentNever => T("Never (icons only)", "Nunca (solo iconos)");
+    public static string PercentNeverHint => T(
+        "Icons turn amber or red when the level is low. Hover an icon to see its percentage.",
+        "Los iconos se ponen ámbar o rojos cuando el nivel es bajo. Pasa el ratón por un icono para ver su porcentaje.");
+    public static string ItemSize => T("Size", "Tamaño");
+    public static string SizeSmall => T("Small", "Pequeño");
+    public static string SizeNormal => T("Normal", "Normal");
+    public static string SizeLarge => T("Large", "Grande");
+    public static string SizeHint => T("BatTray makes items smaller by itself when they do not fit.", "BatTray reduce los elementos por sí sola cuando no caben.");
+    public static string OrderAndCustomize => T("Order, rename and change icons…", "Ordenar, renombrar y cambiar iconos…");
+    public static string Hotkey => T("Open the panel with", "Abrir el panel con");
+    public static string HotkeyHint => T("Click the box and press the new keys (Ctrl or Alt plus a key).", "Haz clic en el cuadro y pulsa las teclas nuevas (Ctrl o Alt más una tecla).");
+    public static string HotkeyPress => T("Press the keys…", "Pulsa las teclas…");
+    public static string HotkeyInUse => T("Another app already uses this shortcut. Choose a different one.", "Otra app ya usa este atajo. Elige otro.");
+    public static string HotkeyNeedsModifier => T("Use Ctrl or Alt together with another key.", "Usa Ctrl o Alt junto con otra tecla.");
+
+    // ---------- Customize: order and alerts ----------
+    public static string MoveUp => T("Move up", "Subir");
+    public static string MoveDown => T("Move down", "Bajar");
+    public static string OrderHint => T("Drag devices or use the arrows to change their order on the taskbar.", "Arrastra los dispositivos o usa las flechas para cambiar su orden en la barra.");
+    public static string LowBatteryAlert => T("Low battery notification", "Aviso de batería baja");
+    public static string AlertGeneral(int percent) => T($"Use the general setting ({percent}%)", $"Usar el ajuste general ({percent} %)");
+    public static string AlertGeneralOff => T("Use the general setting (notifications are off)", "Usar el ajuste general (avisos desactivados)");
+    public static string AlertAt => T("Notify me at", "Avisarme al");
+    public static string AlertNever => T("Never notify me about this device", "No avisarme de este dispositivo");
+
+    // ---------- Full charge ----------
+    public static string FullChargeTitle(string name) => T($"{name} is fully charged", $"{name} está completamente cargado");
+    public static string FullChargeMessage => T("You can unplug it: keeping it on the charger at 100% wears the battery.", "Ya puedes desconectarlo: dejarlo cargando al 100 % desgasta la batería.");
+
+    // ---------- Panel history ----------
+    public static string Last7Days => T("Last 7 days", "Últimos 7 días");
+
+    // ---------- One-click update ----------
+    public static string UpdateDialogTitle => T("Update BatTray", "Actualizar BatTray");
+    public static string UpdateDialogIntro(string current) => T(
+        $"You have version {current}. BatTray will download the installer from GitHub, check it and install it. BatTray closes while it installs and you can open it again from the last step of the installer.",
+        $"Tienes la versión {current}. BatTray descargará el instalador desde GitHub, lo comprobará y lo instalará. BatTray se cierra mientras se instala y puedes volver a abrirla en el último paso del instalador.");
+    public static string WhatsNew => T("What's new", "Novedades");
+    public static string DownloadAndInstall => T("Download and install", "Descargar e instalar");
+    public static string OpenDownloadPage => T("Open download page", "Abrir página de descarga");
+    public static string NoVerifiedInstaller => T(
+        "This release has no installer BatTray can verify. Download it from the release page instead.",
+        "Esta versión no tiene un instalador que BatTray pueda verificar. Descárgalo desde la página de la versión.");
+    public static string Downloading(int percent) => T($"Downloading… {percent}%", $"Descargando… {percent} %");
+    public static string Verifying => T("Checking the installer…", "Comprobando el instalador…");
+    public static string DownloadFailed(string reason) => T($"The update could not be downloaded: {reason}", $"No se pudo descargar la actualización: {reason}");
+    public static string VerifyFailed => T(
+        "The downloaded file is not the one published on GitHub, so it was deleted and not installed.",
+        "El archivo descargado no es el publicado en GitHub, así que se borró y no se instaló.");
+    public static string InstallerFailed => T("The installer could not be started.", "No se pudo iniciar el instalador.");
 
     // ---------- Report a problem ----------
     public static string ReportTitle => T("Report a problem", "Informar de un problema");

@@ -26,12 +26,19 @@ public partial class CustomizeWindow : Window
     private string? _pendingIcon;
     private bool _loading;
 
-    private CustomizeWindow(IReadOnlyList<Device> devices, Func<string, DeviceCustomization?> get, Action<string, DeviceCustomization?> save)
+    private readonly Action<IReadOnlyList<string>> _saveOrder;
+    private readonly Func<int?> _generalAlert;
+    private Point _dragStart;
+
+    private CustomizeWindow(IReadOnlyList<Device> devices, Func<string, DeviceCustomization?> get, Action<string, DeviceCustomization?> save,
+        Action<IReadOnlyList<string>> saveOrder, Func<int?> generalAlert)
     {
         InitializeComponent();
         ThemeWatcher.ApplyTitleBar(this);
         _get = get;
         _save = save;
+        _saveOrder = saveOrder;
+        _generalAlert = generalAlert;
         _entries = devices.Select(d => new Entry(d.Id, d.Name, d.Kind)).ToList();
         foreach (var entry in _entries)
             entry.Refresh(_get(entry.Id));
@@ -41,10 +48,13 @@ public partial class CustomizeWindow : Window
     }
 
     /// <summary>Shows the window (or brings the open one to the front).</summary>
-    /// <param name="devices">Devices with their own names and kinds (before customization).</param>
-    public static void ShowSingle(IReadOnlyList<Device> devices, Func<string, DeviceCustomization?> get, Action<string, DeviceCustomization?> save)
+    /// <param name="devices">Devices with their own names and kinds (before customization), in the user's order.</param>
+    /// <param name="saveOrder">Saves the new order of the device ids.</param>
+    /// <param name="generalAlert">The general alert level, or null when notifications are off.</param>
+    public static void ShowSingle(IReadOnlyList<Device> devices, Func<string, DeviceCustomization?> get, Action<string, DeviceCustomization?> save,
+        Action<IReadOnlyList<string>> saveOrder, Func<int?> generalAlert)
     {
-        _open ??= new CustomizeWindow(devices, get, save);
+        _open ??= new CustomizeWindow(devices, get, save, saveOrder, generalAlert);
         _open.Show();
         if (_open.WindowState == WindowState.Minimized)
             _open.WindowState = WindowState.Normal;
@@ -55,6 +65,7 @@ public partial class CustomizeWindow : Window
     {
         _current = DeviceList.SelectedItem as Entry;
         Editor.IsEnabled = SaveButton.IsEnabled = ResetButton.IsEnabled = _current is not null;
+        UpdateMoveButtons();
         if (_current is null)
             return;
 
@@ -64,6 +75,10 @@ public partial class CustomizeWindow : Window
         OriginalName.Text = L.OriginalName(_current.OriginalName);
         _pendingIcon = customization?.Icon;
         BuildIconTiles();
+        AlertGeneral.Content = _generalAlert() is { } general ? L.AlertGeneral(general) : L.AlertGeneralOff;
+        AlertSlider.Value = customization?.AlertAt ?? _generalAlert() ?? 15;
+        ShowAlertValue();
+        (customization?.NoAlerts == true ? AlertNever : customization?.AlertAt is not null ? AlertCustom : AlertGeneral).IsChecked = true;
         _loading = false;
         HideError();
     }
@@ -147,7 +162,9 @@ public partial class CustomizeWindow : Window
         var name = NameBox.Text.Trim();
         var customization = new DeviceCustomization(
             name.Length == 0 || name == _current.OriginalName ? null : name,
-            _pendingIcon);
+            _pendingIcon,
+            AlertCustom.IsChecked == true ? (int)AlertSlider.Value : null,
+            AlertNever.IsChecked == true);
         _save(_current.Id, customization);
         _current.Refresh(_get(_current.Id));
         DeviceList.Items.Refresh();
@@ -164,6 +181,69 @@ public partial class CustomizeWindow : Window
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
+
+    // ---------- Alerts ----------
+
+    private void OnAlertSliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (AlertValue is null || AlertCustom is null)
+            return; // still being built
+        ShowAlertValue();
+        if (!_loading)
+            AlertCustom.IsChecked = true;
+    }
+
+    private void ShowAlertValue() => AlertValue.Text = $"{AlertSlider.Value:0}%";
+
+    // ---------- Order ----------
+
+    private void OnMoveUp(object sender, RoutedEventArgs e) => Move(DeviceList.SelectedIndex, DeviceList.SelectedIndex - 1);
+
+    private void OnMoveDown(object sender, RoutedEventArgs e) => Move(DeviceList.SelectedIndex, DeviceList.SelectedIndex + 1);
+
+    private void Move(int from, int to)
+    {
+        if (from < 0 || to < 0 || from >= _entries.Count || to >= _entries.Count || from == to)
+            return;
+        var entry = _entries[from];
+        _entries.RemoveAt(from);
+        _entries.Insert(to, entry);
+        DeviceList.Items.Refresh();
+        DeviceList.SelectedIndex = to;
+        _saveOrder(_entries.Select(x => x.Id).ToList());
+        UpdateMoveButtons();
+    }
+
+    private void UpdateMoveButtons()
+    {
+        if (UpButton is null || DownButton is null)
+            return;
+        UpButton.IsEnabled = DeviceList.SelectedIndex > 0;
+        DownButton.IsEnabled = DeviceList.SelectedIndex >= 0 && DeviceList.SelectedIndex < _entries.Count - 1;
+    }
+
+    private void OnListMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e) => _dragStart = e.GetPosition(DeviceList);
+
+    private void OnListMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (e.LeftButton != System.Windows.Input.MouseButtonState.Pressed || DeviceList.SelectedItem is not Entry entry)
+            return;
+        var delta = e.GetPosition(DeviceList) - _dragStart;
+        if (Math.Abs(delta.Y) < SystemParameters.MinimumVerticalDragDistance)
+            return;
+        DragDrop.DoDragDrop(DeviceList, entry, DragDropEffects.Move);
+    }
+
+    private void OnListDrop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetData(typeof(Entry)) is not Entry dragged)
+            return;
+        var target = e.OriginalSource is DependencyObject source
+            ? ItemsControl.ContainerFromElement(DeviceList, source) as ListBoxItem
+            : null;
+        var to = target?.DataContext is Entry over ? _entries.IndexOf(over) : _entries.Count - 1;
+        Move(_entries.IndexOf(dragged), to);
+    }
 
     private void ShowError(string message)
     {

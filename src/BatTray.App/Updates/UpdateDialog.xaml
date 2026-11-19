@@ -1,0 +1,29 @@
+<Window x:Class="BatTray.App.Updates.UpdateDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Style="{StaticResource ThemedWindow}"
+        Icon="/Assets/BatTray.ico"
+        ResizeMode="NoResize"
+        SizeToContent="Height"
+        Width="460"
+        WindowStartupLocation="CenterScreen">
+
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Style="{StaticResource DialogFooter}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="InstallButton" MinWidth="90" IsDefault="True" Click="OnInstall" />
+                <Button x:Name="CancelButton" MinWidth="90" Margin="8,0,0,0" IsCancel="True" Click="OnCancel" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Margin="24,20,24,18">
+            <TextBlock x:Name="Heading" Style="{StaticResource SectionTitle}" />
+            <TextBlock x:Name="Intro" TextWrapping="Wrap" />
+            <TextBlock Margin="0,10,0,0">
+                <Hyperlink x:Name="NotesLink" Click="OnNotes"><Run x:Name="NotesText" /></Hyperlink>
+            </TextBlock>
+            <ProgressBar x:Name="Progress" Height="8" Margin="0,16,0,0" Maximum="1" Visibility="Collapsed" />
+            <TextBlock x:Name="Status" Margin="0,8,0,0" TextWrapping="Wrap" Style="{StaticResource Muted}" />
+        </StackPanel>
+    </DockPanel>
+</Window>
