@@ -1,0 +1,56 @@
+name: "🔌 My device is not detected or shows a wrong level"
+description: Ask for support for a device, or report a wrong percentage.
+title: "Device: "
+labels: ["device-support"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The diagnostics report is what makes it possible to add a device: it lists the receiver's USB ids and HID layout.
+        In BatTray: **menu → Report a problem…** (or **Settings → Save diagnostics report…**), then drag the file into this issue.
+        It contains device names, models and USB ids — check it before attaching it. ¡Puedes escribir en español!
+  - type: input
+    id: device
+    attributes:
+      label: Device (brand and model)
+      placeholder: e.g. Attack Shark X11
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection
+      options:
+        - 2.4 GHz USB receiver (dongle)
+        - Bluetooth
+        - USB cable
+    validations:
+      required: true
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What happens
+      options:
+        - It does not appear at all
+        - It appears as "no battery data"
+        - The percentage is wrong
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: What BatTray shows, what the vendor app shows, and the name of the vendor app (if any).
+  - type: textarea
+    id: report
+    attributes:
+      label: Diagnostics report
+      description: Drag the file saved by BatTray here.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: BatTray version
+      placeholder: "1.1.0"

@@ -13,9 +13,16 @@ receptores USB de 2,4 GHz (dongles) no tienen un estándar de batería común: c
 normalmente solo lee su propia app. BatTray lee los dos: dispositivos Bluetooth y receptores de 2,4 GHz de más de 70
 protocolos y marcas, sin instalar el software del fabricante.
 
-```
-[🖱 50%]  [🎧 80%⚡]  [⌨ 12%]   ⌃  🔊  🔋97%   13:45
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/showcase-dark.png" />
+  <img src="docs/images/showcase-light.png" alt="BatTray: panel de detalle con gráfico de 7 días y menú agrupado en Bluetooth y 2,4 GHz" />
+</picture>
+
+<details>
+<summary><b>Verla en acción</b> (widget, panel, menú y ajustes, en claro y oscuro)</summary>
+
+![Demo de BatTray](docs/images/demo.gif)
+</details>
 
 ## Funciones
 - **Widget en la barra de tareas** con el icono y el porcentaje de cada dispositivo (verde / ámbar / rojo),
@@ -74,6 +81,21 @@ propio protocolo.
 
 No soportados (necesitan comandos que no son de solo lectura, así que BatTray no los envía): Logitech G435, Razer
 BlackShark V2 Pro 2023 / V3 / Barracuda, Turtle Beach Stealth 700 Gen 3, Poly BT600, RAWM, teclados PMO / WOBKEY.
+
+### Confirmados por usuarios
+Dispositivos que alguien ha comprobado con BatTray. **¿El tuyo funciona?**
+[Cuéntanoslo](https://github.com/koratsolutions-code/BatTray/issues/new?template=device-works.yml) y lo añadimos aquí, con
+tu nombre si quieres. **¿No funciona?**
+[Envía un informe de diagnóstico](https://github.com/koratsolutions-code/BatTray/issues/new?template=device-not-working.yml)
+e intentaremos añadirlo.
+
+| Dispositivo | Conexión | Batería | Confirmado por | Versión |
+|---|---|---|---|---|
+| Auriculares Ozeino OW810 | Bluetooth | ✅ Leída (Bluetooth de Windows) | Korat Solutions | 1.0 |
+| Auriculares Ozeino OW810 | Dongle de 2,4 GHz (`3206:0861`) | 〰️ Estimada por uso: el dongle no envía la batería | Korat Solutions | 1.0 |
+| Ratón Klip Xtreme Orbix KMW500 | Receptor de 2,4 GHz (`3151:1025`) | ✍️ Nivel fijado a mano: el receptor no envía la batería | Korat Solutions | 1.0 |
+
+✅ leída del dispositivo · 〰️ estimada por uso · ✍️ fijada a mano · ❌ no soportado
 
 **Seguridad:** solo se envían consultas de lectura, y solo a receptores que un protocolo reconoce con certeza.
 Nunca se usan comandos que cambien ajustes o el modo del dongle. A los receptores no reconocidos nunca se les

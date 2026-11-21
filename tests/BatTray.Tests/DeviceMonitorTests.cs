@@ -104,7 +104,7 @@ public class DeviceMonitorTests
 
         await monitor.RefreshAsync();
 
-        Assert.Equal(3, monitor.Devices.Count);
+        Assert.Equal(4, monitor.Devices.Count); // the four demo devices
         Assert.IsType<InvalidOperationException>(reported);
     }
 

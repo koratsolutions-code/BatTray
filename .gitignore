@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 # Claude Code (local settings, agent worktrees)
 .claude/
+
+# Marketing drafts (launch posts), not published
+marketing/

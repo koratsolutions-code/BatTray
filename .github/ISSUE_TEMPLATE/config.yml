@@ -1,0 +1,6 @@
+# Blank issues stay enabled: "Report a problem…" in the app opens a pre-filled issue.
+blank_issues_enabled: true
+contact_links:
+  - name: User guide
+    url: https://github.com/koratsolutions-code/BatTray#readme
+    about: How to use BatTray, settings and supported devices.

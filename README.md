@@ -13,9 +13,16 @@ USB receivers (dongles) have no common battery standard: every brand uses its ow
 by its own app. BatTray reads both: Bluetooth devices, and 2.4 GHz receivers from more than 70 protocols and brands,
 with no vendor software needed.
 
-```
-[🖱 50%]  [🎧 80%⚡]  [⌨ 12%]   ⌃  🔊  🔋97%   13:45
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/showcase-dark.png" />
+  <img src="docs/images/showcase-light.png" alt="BatTray: detail panel with a 7-day chart and the menu grouped into Bluetooth and 2.4 GHz" />
+</picture>
+
+<details>
+<summary><b>See it in action</b> (widget, panel, menu and settings, light and dark)</summary>
+
+![BatTray demo](docs/images/demo.gif)
+</details>
 
 ## Features
 - **Taskbar widget** with each device's icon and percentage (green / amber / red), on every monitor's taskbar.
@@ -71,6 +78,19 @@ Unlike Bluetooth, 2.4 GHz dongles have no common battery standard: every vendor 
 
 Not supported (they need commands that are not read-only, so BatTray does not send them): Logitech G435, Razer
 BlackShark V2 Pro 2023 / V3 / Barracuda, Turtle Beach Stealth 700 Gen 3, Poly BT600, RAWM, PMO / WOBKEY keyboards.
+
+### Confirmed by users
+Devices that people have checked with BatTray. **Does yours work?** [Tell us](https://github.com/koratsolutions-code/BatTray/issues/new?template=device-works.yml)
+and it will be added here, with your name if you like. **Doesn't it?**
+[Send a diagnostics report](https://github.com/koratsolutions-code/BatTray/issues/new?template=device-not-working.yml) and we will try to add it.
+
+| Device | Connection | Battery | Confirmed by | Version |
+|---|---|---|---|---|
+| Ozeino OW810 headset | Bluetooth | ✅ Read (Windows Bluetooth) | Korat Solutions | 1.0 |
+| Ozeino OW810 headset | 2.4 GHz dongle (`3206:0861`) | 〰️ Estimated from usage — the dongle sends no battery data | Korat Solutions | 1.0 |
+| Klip Xtreme Orbix KMW500 mouse | 2.4 GHz receiver (`3151:1025`) | ✍️ Level set manually — the receiver sends no battery data | Korat Solutions | 1.0 |
+
+✅ read from the device · 〰️ estimated from usage · ✍️ set manually · ❌ not supported
 
 **Safety:** only read-only queries are sent, and only to receivers a protocol positively recognises.
 Commands that change settings or switch dongle modes are never used. Unrecognised receivers are never

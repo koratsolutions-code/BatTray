@@ -1,0 +1,48 @@
+name: "✅ My device works"
+description: Tell us BatTray reads your device correctly — it will be added to the confirmed devices table (with your name, if you like).
+title: "Works: "
+labels: ["device-confirmed"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! Most of BatTray's 2.4 GHz protocols come from public documentation, so every confirmation helps other people.
+        ¡Gracias! Puedes escribir en español.
+  - type: input
+    id: device
+    attributes:
+      label: Device (brand and model)
+      placeholder: e.g. Logitech G Pro X Superlight 2
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection
+      options:
+        - 2.4 GHz USB receiver (dongle)
+        - Bluetooth
+        - USB cable
+    validations:
+      required: true
+  - type: checkboxes
+    id: what
+    attributes:
+      label: What works
+      options:
+        - label: The percentage matches the vendor app (or the device's own indicator)
+        - label: Charging is shown when it charges
+        - label: Low battery notification
+  - type: input
+    id: version
+    attributes:
+      label: BatTray version
+      description: Menu → About BatTray
+      placeholder: "1.1.0"
+    validations:
+      required: true
+  - type: input
+    id: credit
+    attributes:
+      label: Name to credit in the table (optional)
+      description: Leave empty to stay anonymous, or write your GitHub username.

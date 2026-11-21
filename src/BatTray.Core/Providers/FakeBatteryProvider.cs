@@ -7,11 +7,16 @@ public sealed class FakeBatteryProvider : IBatteryProvider
 {
     private readonly bool _simulateDrain;
     private readonly TimeProvider _time;
-    private readonly List<(string Id, string Name, DeviceKind Kind, int Percent)> _devices =
+    /// <summary>
+    /// Demo devices: one on a 2.4 GHz receiver and three over Bluetooth (ids use the real prefixes so the menu
+    /// groups them like real devices; the addresses and receiver id are made up).
+    /// </summary>
+    private readonly List<(string Id, string Name, DeviceKind Kind, int Percent, string Source)> _devices =
     [
-        ("fake-mouse", "Mouse (demo)", DeviceKind.Mouse, 50),
-        ("fake-headset", "Headset (demo)", DeviceKind.Headset, 80),
-        ("fake-keyboard", "Keyboard (demo)", DeviceKind.Keyboard, 12),
+        ("usb:046DC548:demo", "MX Master 3S", DeviceKind.Mouse, 50, "Logitech Bolt receiver (demo)"),
+        ("bt:D0A1B2C3D4E5", "WH-1000XM5", DeviceKind.Headset, 80, "Windows Bluetooth (demo)"),
+        ("bt:A0A1B2C3D4E7", "AirPods Pro", DeviceKind.Headset, 72, "L 72% · R 78% · case 60% (demo)"),
+        ("bt:F0A1B2C3D4E6", "Keychron K3", DeviceKind.Keyboard, 12, "Bluetooth LE (demo)"),
     ];
 
     /// <param name="simulateDrain">When true, every query lowers each battery by 1 % (wraps back to 100 at 5 %).</param>
@@ -39,7 +44,7 @@ public sealed class FakeBatteryProvider : IBatteryProvider
         for (var i = 0; i < _devices.Count; i++)
         {
             var d = _devices[i];
-            result.Add(new Device(d.Id, d.Name, d.Kind, d.Percent, now, Name));
+            result.Add(new Device(d.Id, d.Name, d.Kind, d.Percent, now, d.Source));
 
             if (_simulateDrain)
                 _devices[i] = d with { Percent = d.Percent <= 5 ? 100 : d.Percent - 1 };
