@@ -45,6 +45,7 @@ public partial class App : Application
     private readonly HistoryStore _historyStore = new();
     private BatteryHistory _history = new();
     private GlobalHotkey? _hotkey;
+    private SessionCloseWindow? _sessionClose;
     private bool _hotkeyOk = true;
     private readonly EstimateStore _estimateStore = new();
     private static readonly TimeSpan EstimateSaveInterval = TimeSpan.FromMinutes(5);
@@ -114,8 +115,16 @@ public partial class App : Application
         var mode = ParseMode(e.Args);
         Log.Info($"BatTray {typeof(App).Assembly.GetName().Version} starting (mode {mode}{(demo ? ", demo" : string.Empty)}).");
 
+        var firstRun = !System.IO.File.Exists(_settingsStore.Path);
         _settings = _settingsStore.Load();
         L.Apply(_settings.Language);
+        if (firstRun && !demo)
+        {
+            // First start after installing: start with Windows by default (it can be turned off in Settings).
+            AutoStart.SetEnabled(true);
+            SaveSettings();
+            Log.Info("First run: start with Windows turned on.");
+        }
         AutoStart.RefreshPathIfEnabled();
         _theme = new ThemeWatcher(Resources, _settings.Theme);
         if (_settings.BatteryHistory)
@@ -190,6 +199,9 @@ public partial class App : Application
         };
         if (!demo)
             _updateTimer.Start();
+
+        // Lets installers and the end of the Windows session close BatTray (it has no visible window).
+        _sessionClose = new SessionCloseWindow(() => Shutdown());
 
         // Keyboard shortcut that opens the panel.
         _hotkey = new GlobalHotkey();
@@ -812,6 +824,7 @@ public partial class App : Application
         SaveEstimates(onlyIfDirty: true);
         SaveHistory();
         _hotkey?.Dispose();
+        _sessionClose?.Dispose();
         foreach (var provider in _providers)
             provider.Dispose();
         _buttonsProbe?.Dispose();

@@ -23,7 +23,7 @@ public sealed partial class UpdateChecker
     /// <summary>Installers are only ever downloaded from this repository's release files.</summary>
     public const string DownloadPrefix = "https://github.com/koratsolutions-code/BatTray/releases/download/";
 
-    /// <summary>Largest installer accepted (the current one is about 30 MB).</summary>
+    /// <summary>Largest installer accepted (the current one is about 65 MB).</summary>
     public const long MaxInstallerSize = 200L * 1024 * 1024;
 
     private readonly HttpClient _http;

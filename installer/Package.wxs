@@ -1,5 +1,6 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
-     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
 
   <!--
     UpgradeCode must never change: it is how new versions replace old ones.
@@ -69,6 +70,13 @@
 
     <!-- Start BatTray when the installation finishes: from the finish dialog's check box, or directly in quiet/basic installs. -->
     <CustomAction Id="LaunchBatTray" Directory="INSTALLFOLDER" ExeCommand="&quot;[INSTALLFOLDER]BatTray.exe&quot;" Return="asyncNoWait" Execute="immediate" />
+
+    <!--
+      Before installing, upgrading or removing: ask a running BatTray to close (it answers WM_CLOSE on its hidden
+      "BatTray" window since 1.1), and end it if it is still running after the wait (1.0 has no such window).
+      Without this the old version kept running and its files were only replaced after a reboot.
+    -->
+    <util:CloseApplication Id="CloseBatTray" Target="BatTray.exe" CloseMessage="yes" RebootPrompt="no" TerminateProcess="0" />
 
     <!-- On uninstall: close BatTray and remove its "start with Windows" entry. -->
     <CustomAction Id="CleanupBatTray" Directory="INSTALLFOLDER" ExeCommand="&quot;[INSTALLFOLDER]BatTray.exe&quot; --uninstall-cleanup" Return="ignore" Execute="immediate" />
