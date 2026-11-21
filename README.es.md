@@ -89,6 +89,11 @@ tu nombre si quieres. **¿No funciona?**
 [Envía un informe de diagnóstico](https://github.com/koratsolutions-code/BatTray/issues/new?template=device-not-working.yml)
 e intentaremos añadirlo.
 
+**¿No tienes cuenta de GitHub?** Escribe a [koratsolutions@gmail.com](mailto:koratsolutions@gmail.com?subject=BatTray%20dispositivo)
+con la marca y el modelo del dispositivo, lo que muestra BatTray y el informe de diagnóstico (clic derecho en BatTray →
+**Informar de un problema…**, o *Ajustes → Guardar informe de diagnóstico…*). También sirve para contarnos que tu
+dispositivo funciona.
+
 | Dispositivo | Conexión | Batería | Confirmado por | Versión |
 |---|---|---|---|---|
 | Auriculares Ozeino OW810 | Bluetooth | ✅ Leída (Bluetooth de Windows) | Korat Solutions | 1.0 |

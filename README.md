@@ -84,6 +84,10 @@ Devices that people have checked with BatTray. **Does yours work?** [Tell us](ht
 and it will be added here, with your name if you like. **Doesn't it?**
 [Send a diagnostics report](https://github.com/koratsolutions-code/BatTray/issues/new?template=device-not-working.yml) and we will try to add it.
 
+**No GitHub account?** Email [koratsolutions@gmail.com](mailto:koratsolutions@gmail.com?subject=BatTray%20device) with the
+device's brand and model, what BatTray shows, and the diagnostics report (right-click BatTray → **Report a problem…**,
+or *Settings → Save diagnostics report…*). The same works to tell us that your device works.
+
 | Device | Connection | Battery | Confirmed by | Version |
 |---|---|---|---|---|
 | Ozeino OW810 headset | Bluetooth | ✅ Read (Windows Bluetooth) | Korat Solutions | 1.0 |
