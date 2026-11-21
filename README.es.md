@@ -27,22 +27,32 @@ protocolos y marcas, sin instalar el software del fabricante.
 ## Funciones
 - **Widget en la barra de tareas** con el icono y el porcentaje de cada dispositivo (verde / ámbar / rojo),
   en la barra de cada monitor. Si no hay sitio, se ocultan primero los que tienen más batería; nunca tapa
-  los botones de las apps.
+  los botones de las apps.<br>
+  <img src="docs/images/features/widget.png" width="113" alt="Widget en la barra de tareas" />
 - **Panel de detalle** (clic izquierdo en el widget o en el icono de la bandeja, o **Ctrl+Alt+B**): todos los
-  dispositivos con barra de nivel, estado de carga, última lectura, origen y un **gráfico de los últimos 7 días**.
+  dispositivos con barra de nivel, estado de carga, última lectura, origen y un **gráfico de los últimos 7 días**.<br>
+  <img src="docs/images/features/panel-es.png" width="300" alt="Panel de detalle" />
 - **Estimación por tiempo de uso** para dispositivos que nunca envían su batería (muchos auriculares y ratones
-  económicos): BatTray cuenta cuánto los usas y muestra una estimación como `~62%`.
+  económicos): BatTray cuenta cuánto los usas y muestra una estimación como `~62%`.<br>
+  <img src="docs/images/features/estimates.png" width="155" alt="Niveles estimados" />
 - **Alertas de batería baja**: una notificación de Windows por descarga cuando un dispositivo llega al nivel crítico,
-  o a su propio nivel (cada dispositivo puede tener uno distinto, o ninguno).
-- **Aviso de carga completa**: te avisa cuando un dispositivo llega al 100 % para que lo desconectes.
+  o a su propio nivel (cada dispositivo puede tener uno distinto, o ninguno).<br>
+  <img src="docs/images/features/notify-low-es.png" width="364" alt="Notificación de batería baja" />
+- **Aviso de carga completa**: te avisa cuando un dispositivo llega al 100 % para que lo desconectes.<br>
+  <img src="docs/images/features/notify-full-es.png" width="364" alt="Notificación de carga completa" />
 - **A tu gusto**: elige el orden de los dispositivos, muestra el porcentaje siempre, solo cuando es bajo o nunca
-  (solo iconos), y elige elementos pequeños, normales o grandes.
-- **Icono y menú en la bandeja** (clic derecho), agrupados en **Bluetooth**, **2,4 GHz (receptor USB)** y **Mandos**.
-- **Español e inglés**: sigue el idioma de Windows, o elige uno en Ajustes.
+  (solo iconos), y elige elementos pequeños, normales o grandes.<br>
+  <img src="docs/images/features/layout-es.png" width="267" alt="Porcentaje siempre, solo si está baja, solo iconos, pequeño" />
+- **Icono y menú en la bandeja** (clic derecho), agrupados en **Bluetooth**, **2,4 GHz (receptor USB)** y **Mandos**.<br>
+  <img src="docs/images/features/menu-es.png" width="263" alt="Menú de BatTray" />
+- **Español e inglés**: sigue el idioma de Windows, o elige uno en Ajustes.<br>
+  <img src="docs/images/features/languages.png" width="360" alt="Menú en inglés y en español" />
 - **Tema claro y oscuro** en menús y ventanas (sigue a Windows o el que elijas); cualquier escalado DPI, barra que
-  se oculta sola, apps a pantalla completa y reinicios del Explorador.
+  se oculta sola, apps a pantalla completa y reinicios del Explorador.<br>
+  <img src="docs/images/features/theme.png" width="480" alt="Tema claro y oscuro" />
 - **Actualización con un clic**: cuando sale una versión nueva (comprobación opcional), BatTray descarga el
-  instalador desde GitHub, lo verifica y lo instala. **Informar de un problema** con un clic.
+  instalador desde GitHub, lo verifica y lo instala. **Informar de un problema** con un clic.<br>
+  <img src="docs/images/features/update-es.png" width="400" alt="Ventana de actualización" />
 
 ## Instalación
 **[Descarga el último instalador](https://github.com/koratsolutions-code/BatTray/releases/latest)** y ejecuta

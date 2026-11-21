@@ -26,22 +26,32 @@ with no vendor software needed.
 
 ## Features
 - **Taskbar widget** with each device's icon and percentage (green / amber / red), on every monitor's taskbar.
-  When there is no room, the devices with the most battery are hidden first — app buttons are never covered.
+  When there is no room, the devices with the most battery are hidden first — app buttons are never covered.<br>
+  <img src="docs/images/features/widget.png" width="113" alt="Taskbar widget" />
 - **Detail panel** (left-click the widget or the tray icon, or press **Ctrl+Alt+B**): every device with a level
-  bar, charging state, last reading, source and a **7-day battery chart**.
+  bar, charging state, last reading, source and a **7-day battery chart**.<br>
+  <img src="docs/images/features/panel-en.png" width="300" alt="Detail panel" />
 - **Low battery alerts**: one Windows notification per discharge when a device drops to the critical level, or
-  to its own level (each device can have a different one, or none).
-- **Full charge notice**: tells you when a device reaches 100 % so you can unplug it.
+  to its own level (each device can have a different one, or none).<br>
+  <img src="docs/images/features/notify-low-en.png" width="364" alt="Low battery notification" />
+- **Full charge notice**: tells you when a device reaches 100 % so you can unplug it.<br>
+  <img src="docs/images/features/notify-full-en.png" width="364" alt="Full charge notification" />
 - **Your layout**: choose the order of the devices, show the percentage always, only when it is low, or never
-  (icons only), and pick small, normal or large items.
+  (icons only), and pick small, normal or large items.<br>
+  <img src="docs/images/features/layout-en.png" width="267" alt="Percentage always, only when low, icons only, small" />
 - **Usage-based estimates** for devices that never report their battery (many budget headsets and mice):
-  BatTray counts how long you use them and shows an estimate such as `~62%`.
-- **Tray icon and menu** (right-click), grouped into **Bluetooth**, **2.4 GHz (USB receiver)** and **Controllers**.
-- **English and Spanish**: follows the Windows language, or pick one in Settings.
+  BatTray counts how long you use them and shows an estimate such as `~62%`.<br>
+  <img src="docs/images/features/estimates.png" width="155" alt="Estimated levels" />
+- **Tray icon and menu** (right-click), grouped into **Bluetooth**, **2.4 GHz (USB receiver)** and **Controllers**.<br>
+  <img src="docs/images/features/menu-en.png" width="263" alt="BatTray menu" />
+- **English and Spanish**: follows the Windows language, or pick one in Settings.<br>
+  <img src="docs/images/features/languages.png" width="360" alt="Menu in English and Spanish" />
 - **Light and dark theme** for menus and windows (follows Windows or your choice); any DPI scaling, auto-hide
-  taskbar, full-screen apps, Explorer restarts.
+  taskbar, full-screen apps, Explorer restarts.<br>
+  <img src="docs/images/features/theme.png" width="480" alt="Light and dark theme" />
 - **One-click updates**: when a new version is published (optional check), BatTray downloads the installer
-  from GitHub, verifies it and installs it. **Report a problem** in one click.
+  from GitHub, verifies it and installs it. **Report a problem** in one click.<br>
+  <img src="docs/images/features/update-en.png" width="400" alt="Update window" />
 
 ## Install
 **[Download the latest installer](https://github.com/koratsolutions-code/BatTray/releases/latest)** and run
